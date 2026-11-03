@@ -1,0 +1,20 @@
+{
+  "name": "Radio Porcuna",
+  "short_name": "Radio Porcuna",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#ff3333",
+  "icons": [
+    {
+      "src": "https://cdn-profiles.tunein.com/s225357/images/logog.jpg?t=156985",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://cdn-profiles.tunein.com/s225357/images/logog.jpg?t=156985",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
