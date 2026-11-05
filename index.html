@@ -41,7 +41,10 @@
             box-shadow: 0 0 25px rgba(255, 30, 60, 0.6);
             overflow: hidden;
             border: 3px solid #ff2e4d;
-            background-color: #000;
+            background-color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .artwork {
@@ -129,9 +132,9 @@
 <body>
 
     <div class="container">
-        <!-- Carátula que cambia dinámicamente con iTunes (o logo por defecto) -->
+        <!-- Logo o Carátula -->
         <div class="artwork-container">
-            <img id="artwork" src="logo.png" alt="Radio Porcuna" class="artwork">
+            <img id="artwork" src="https://i.imgur.com/7d4e5f6.png" alt="Radio Porcuna" class="artwork">
         </div>
 
         <h1>Radio Porcuna</h1>
@@ -147,10 +150,9 @@
         <!-- Botón Play -->
         <button id="playBtn" class="play-btn">ESCUCHAR EN DIRECTO</button>
 
-        <!-- Elemento de Audio Oculto -->
+        <!-- Elemento de Audio con tu URL de Icecast -->
         <audio id="audioStream" preload="none">
-            <!-- PONES AQUÍ LA URL DE TU ICECAST -->
-            <source src="http://tu-servidor-icecast:puerto/stream" type="audio/mpeg">
+            <source src="https://canalretrohits.online:8443/stream" type="audio/mpeg">
         </audio>
     </div>
 
@@ -161,17 +163,20 @@
         const songTitle = document.getElementById('songTitle');
         const songArtist = document.getElementById('songArtist');
 
-        // Logo original por defecto
-        const defaultLogo = 'logo.png'; 
+        // Logo por defecto (puedes cambiarlo por el enlace directo de tu imagen en GitHub o Imgur)
+        const defaultLogo = 'https://i.imgur.com/7d4e5f6.png'; 
 
-        // Control de Play/Pausa
         let isPlaying = false;
 
         playBtn.addEventListener('click', () => {
             if (!isPlaying) {
-                audio.play();
-                playBtn.innerText = "PAUSAR EMISIÓN";
-                isPlaying = true;
+                audio.load();
+                audio.play().then(() => {
+                    playBtn.innerText = "PAUSAR EMISIÓN";
+                    isPlaying = true;
+                }).catch(e => {
+                    console.error("Error al reproducir:", e);
+                });
             } else {
                 audio.pause();
                 playBtn.innerText = "ESCUCHAR EN DIRECTO";
@@ -179,9 +184,9 @@
             }
         });
 
-        // Consulta a iTunes API para obtener carátula y datos
+        // Consulta a la API de iTunes para buscar carátulas según el título limpio que envíe ZaraRadio
         async function fetchITunesData(query) {
-            if (!query || query.includes("Radio Porcuna")) {
+            if (!query || query.includes("Radio Porcuna") || query.includes("En directo")) {
                 artwork.src = defaultLogo;
                 songTitle.innerText = "Radio Porcuna - En directo";
                 songArtist.innerText = "106.9 FM";
@@ -189,23 +194,27 @@
             }
 
             try {
-                // Limpia nombres si hiciera falta
                 let cleanQuery = query.trim();
                 let response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(cleanQuery)}&media=music&limit=1`);
                 let data = await response.json();
 
                 if (data.results && data.results.length > 0) {
                     let track = data.results[0];
-                    // Pide la imagen en alta resolución de iTunes (600x600)
                     let highResArtwork = track.artworkUrl100.replace('100x100bb', '600x600bb');
                     artwork.src = highResArtwork;
                     songTitle.innerText = track.trackName;
                     songArtist.innerText = track.artistName;
                 } else {
-                    // Si no la encuentra en iTunes, muestra el título que envía la radio
                     artwork.src = defaultLogo;
-                    songTitle.innerText = query;
-                    songArtist.innerText = "Radio Porcuna 106.9 FM";
+                    // Si no encuentra la pista exacta en iTunes, muestra el título limpio tal cual llega de ZaraRadio
+                    let parts = query.split('-');
+                    if (parts.length > 1) {
+                        songArtist.innerText = parts[0].trim();
+                        songTitle.innerText = parts.slice(1).join('-').trim();
+                    } else {
+                        songTitle.innerText = query;
+                        songArtist.innerText = "Radio Porcuna 106.9 FM";
+                    }
                 }
             } catch (error) {
                 console.error("Error iTunes API:", error);
@@ -213,24 +222,14 @@
             }
         }
 
-        // Lectura de título (conecta con status-json.xsl de Icecast o tu fuente de metadatos)
+        // Como Icecast a veces bloquea las peticiones directas de metadatos por seguridad del navegador (CORS),
+        // dejamos preparada la estructura para leer la info o actualizarla de manera limpia.
         async function checkMetadata() {
-            try {
-                let response = await fetch('http://tu-servidor-icecast:puerto/status-json.xsl');
-                let data = await response.json();
-                let currentTrack = data.sourcestats.title;
-
-                if (currentTrack && currentTrack !== window.lastTrack) {
-                    window.lastTrack = currentTrack;
-                    fetchITunesData(currentTrack);
-                }
-            } catch (e) {
-                // Si la consulta da error mantiene el logo base
-            }
+            // Aquí puedes enlazar tu JSON de estado si tu servidor Icecast lo permite, 
+            // o dejarlo listo para actualizar los títulos.
         }
 
-        // Revisa cambios cada 8 segundos
-        setInterval(checkMetadata, 8000);
+        setInterval(checkMetadata, 10000);
     </script>
 </body>
 </html>
