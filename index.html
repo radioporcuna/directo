@@ -70,6 +70,7 @@
       border: 4px solid #38bdf8;
       box-shadow: 0 8px 25px rgba(56, 189, 248, 0.3);
       display: block;
+      background-color: #1e293b;
     }
 
     .live-badge {
@@ -111,7 +112,6 @@
       text-overflow: ellipsis;
     }
 
-    /* Botón cuadrado, rojo y mucho más grande */
     .play-btn {
       background: #ef4444;
       color: #ffffff;
@@ -146,13 +146,14 @@
     <p class="station-tagline">Emisión Online 24 Horas</p>
 
     <div class="cover-container">
-      <img id="coverArt" class="cover-art" src="logo.png" alt="Radio Porcuna">
+      <!-- Si logo.png no se encuentra, muestra un diseño elegante de respaldo automáticamente -->
+      <img id="coverArt" class="cover-art" src="logo.png" alt="Radio Porcuna" onerror="this.src='https://via.placeholder.com/200/1e293b/38bdf8?text=RADIO+PORCUNA'">
       <span class="live-badge">EN VIVO</span>
     </div>
 
     <div class="track-info">
-      <div id="songTitle" class="song-title">Radio Porcuna</div>
-      <div id="songArtist" class="song-artist">Emisión Online</div>
+      <div id="songTitle" class="song-title">Cargando emisión...</div>
+      <div id="songArtist" class="song-artist">Radio Porcuna Online</div>
     </div>
 
     <button id="playBtn" class="play-btn" aria-label="Reproducir">
@@ -217,7 +218,8 @@
     async function updateMetadata() {
       try {
         const icecastUrl = 'https://canalretrohits.online:8443/status-json.xsl?_=' + new Date().getTime();
-        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(icecastUrl);
+        // Proxy ultrarrápido y directo
+        const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(icecastUrl);
         
         const response = await fetch(proxyUrl);
         const data = await response.json();
