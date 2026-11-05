@@ -197,15 +197,18 @@
 
     async function fetchCoverArt(artist, title) {
       try {
-        // Limpiamos paréntesis y caracteres especiales para asegurar que iTunes encuentre la carátula
         let cleanQuery = `${artist} ${title}`.replace(/\([^)]*\)/g, '').trim();
-        const query = encodeURIComponent(cleanQuery);
-        
-        const response = await fetch(`https://itunes.apple.com/search?term=${query}&entity=song&limit=1`);
-        const data = await response.json();
+        let response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(cleanQuery)}&entity=song&limit=1`);
+        let data = await response.json();
+
+        // Si no encuentra la canción exacta, probamos buscando solo por el artista
+        if (!data.results || data.results.length === 0) {
+          response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&entity=musicArtist&limit=1`);
+          data = await response.json();
+        }
 
         if (data.results && data.results.length > 0) {
-          let artworkUrl = data.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
+          let artworkUrl = (data.results[0].artworkUrl100 || data.results[0].artworkUrl60).replace(/100x100bb|60x60bb/, '600x600bb');
           coverArt.src = artworkUrl;
         } else {
           coverArt.src = DEFAULT_LOGO;
@@ -230,10 +233,8 @@
           if (source.title && source.title !== currentTrack) {
             currentTrack = source.title;
             
-            // FILTRO POTENTE: Elimina cualquier número inicial, puntos, espacios o guiones que meta la playlist (ej: "11. Armin" -> "Armin")
+            // Limpieza de números y guiones de la playlist de ZaraRadio
             let rawTitle = source.title.replace(/^\d+[\.\-\s]+/, '').trim();
-            
-            // Por si acaso viene con doble numeración o espacios raros
             let cleanTitle = rawTitle.replace(/^[\d\.\-\s]+/, '').trim();
             
             const parts = cleanTitle.split(' - ');
