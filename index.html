@@ -213,8 +213,8 @@
 
     async function updateMetadata() {
       try {
-        // Usamos un proxy CORS público para saltarnos el bloqueo del navegador en GitHub Pages
-        const icecastUrl = 'https://canalretrohits.online:8443/status-json.xsl';
+        // Añadimos un parámetro de tiempo único (_=timestamp) para evitar que el proxy guarde caché antigua
+        const icecastUrl = 'https://canalretrohits.online:8443/status-json.xsl?_=' + new Date().getTime();
         const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(icecastUrl);
         
         const response = await fetch(proxyUrl);
@@ -227,7 +227,7 @@
           if (source.title && source.title !== currentTrack) {
             currentTrack = source.title;
             
-            // Recorta los números de la lista de reproducción automáticamente
+            // Recorta los números iniciales de la lista de reproducción
             let cleanTitle = source.title.replace(/^\d+[\.\-\s]+/, '').trim();
             
             const parts = cleanTitle.split(' - ');
@@ -252,7 +252,8 @@
     }
 
     updateMetadata();
-    setInterval(updateMetadata, 10000);
+    // Comprueba los cambios cada 5 segundos para que sea mucho más rápido y fluido
+    setInterval(updateMetadata, 5000);
   </script>
 
 </body>
