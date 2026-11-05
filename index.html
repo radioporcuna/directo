@@ -216,3 +216,31 @@
           if (source.title && source.title !== currentTrack) {
             currentTrack = source.title;
             const parts = source.title.split(' - ');
+            
+            let artistName = "Radio Porcuna";
+            let trackName = source.title;
+
+            if (parts.length > 1) {
+              artistName = parts[0].trim();
+              trackName = parts.slice(1).join(' - ').trim();
+            }
+
+            songArtist.textContent = artistName;
+            songTitle.textContent = trackName;
+
+            fetchCoverArt(artistName, trackName);
+          }
+        }
+      } catch (error) {
+        if (songTitle.textContent === "Cargando emisión...") {
+          songTitle.textContent = "Radio Porcuna 106.9 FM";
+        }
+      }
+    }
+
+    updateMetadata();
+    setInterval(updateMetadata, 10000);
+  </script>
+
+</body>
+</html>
