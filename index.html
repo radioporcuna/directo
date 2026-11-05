@@ -158,7 +158,7 @@
     </button>
 
     <audio id="audioStream" preload="none">
-      <source src="https://tu-servidor-icecast.com/stream" type="audio/mpeg">
+      <source src="https://canalretrohits.online:8443/stream" type="audio/mpeg">
       Tu navegador no soporta el reproductor de audio.
     </audio>
   </div>
@@ -172,7 +172,7 @@
     const songArtist = document.getElementById('songArtist');
     const coverArt = document.getElementById('coverArt');
 
-    const DEFAULT_LOGO = 'logo.png'; // Imagen por defecto cuando no hay carátula
+    const DEFAULT_LOGO = 'logo.png';
     let currentTrack = "";
 
     playBtn.addEventListener('click', () => {
@@ -187,7 +187,6 @@
       }
     });
 
-    // Buscar carátula en iTunes API
     async function fetchCoverArt(artist, title) {
       try {
         const query = encodeURIComponent(`${artist} ${title}`);
@@ -195,7 +194,6 @@
         const data = await response.json();
 
         if (data.results && data.results.length > 0) {
-          // Obtiene la carátula en resolución de 600x600 px
           let artworkUrl = data.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
           coverArt.src = artworkUrl;
         } else {
@@ -206,10 +204,9 @@
       }
     }
 
-    // Consulta los metadatos de Icecast
     async function updateMetadata() {
       try {
-        const response = await fetch('https://tu-servidor-icecast.com/status-json.xsl');
+        const response = await fetch('https://canalretrohits.online:8443/status-json.xsl');
         const data = await response.json();
         
         if (data && data.icestats && data.icestats.source) {
@@ -219,32 +216,3 @@
           if (source.title && source.title !== currentTrack) {
             currentTrack = source.title;
             const parts = source.title.split(' - ');
-            
-            let artistName = "Radio Porcuna";
-            let trackName = source.title;
-
-            if (parts.length > 1) {
-              artistName = parts[0].trim();
-              trackName = parts.slice(1).join(' - ').trim();
-            }
-
-            songArtist.textContent = artistName;
-            songTitle.textContent = trackName;
-
-            // Busca la carátula de la nueva canción
-            fetchCoverArt(artistName, trackName);
-          }
-        }
-      } catch (error) {
-        if (songTitle.textContent === "Cargando emisión...") {
-          songTitle.textContent = "Radio Porcuna 106.9 FM";
-        }
-      }
-    }
-
-    updateMetadata();
-    setInterval(updateMetadata, 3000);
-  </script>
-
-</body>
-</html>
