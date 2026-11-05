@@ -171,8 +171,10 @@
     const coverArt = document.getElementById('coverArt');
 
     const DEFAULT_LOGO = 'https://th.bing.com/th/id/OIP.r0GmWS-weAn_Bi_Dusc8FwAAAA?w=168&h=176&c=7&r=0&o=7&pid=1.7&rm=3';
-    let currentTrack = "";
+    // Clave de la API de Last.fm para la búsqueda de carátulas
+    const LASTFM_API_KEY = '20c74f5146c9faefd6928e4695e2ab90';
     
+    let currentTrack = "";
     let audio = new Audio();
     audio.preload = "none";
 
@@ -197,22 +199,37 @@
 
     async function fetchCoverArt(artist, title) {
       try {
-        let cleanQuery = `${artist} ${title}`.replace(/\([^)]*\)/g, '').trim();
-        let response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(cleanQuery)}&entity=song&limit=1`);
-        let data = await response.json();
+        let cleanArtist = artist.replace(/\([^)]*\)/g, '').trim();
+        let cleanTitle = title.replace(/\([^)]*\)/g, '').trim();
+        
+        // 1. INTENTO EN LAST.FM (mucho más flexible y con mejor catálogo)
+        const lastfmUrl = `https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=${LASTFM_API_KEY}&artist=${encodeURIComponent(cleanArtist)}&track=${encodeURIComponent(cleanTitle)}&format=json`;
+        const resLastFm = await fetch(lastfmUrl);
+        const dataLastFm = await resLastFm.json();
 
-        // Si no encuentra la canción exacta, probamos buscando solo por el artista
-        if (!data.results || data.results.length === 0) {
-          response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&entity=musicArtist&limit=1`);
-          data = await response.json();
+        if (dataLastFm.track && dataLastFm.track.album && dataLastFm.track.album.image) {
+          const images = dataLastFm.track.album.image;
+          const extralargeImage = images.find(img => img.size === 'extralarge') || images[images.length - 1];
+          if (extralargeImage && extralargeImage['#text']) {
+            coverArt.src = extralargeImage['#text'];
+            return;
+          }
         }
 
-        if (data.results && data.results.length > 0) {
-          let artworkUrl = (data.results[0].artworkUrl100 || data.results[0].artworkUrl60).replace(/100x100bb|60x60bb/, '600x600bb');
+        // 2. RESPALDO SECUNDARIO EN ITUNES (por si Last.fm no encuentra esa versión)
+        const itunesUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(cleanArtist + ' ' + cleanTitle)}&entity=song&limit=1`;
+        const resItunes = await fetch(itunesUrl);
+        const dataItunes = await resItunes.json();
+
+        if (dataItunes.results && dataItunes.results.length > 0) {
+          let artworkUrl = dataItunes.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
           coverArt.src = artworkUrl;
-        } else {
-          coverArt.src = DEFAULT_LOGO;
+          return;
         }
+
+        // 3. SI NINGUNO TIENE LA CARÁTULA, PONE EL LOGOTIPO
+        coverArt.src = DEFAULT_LOGO;
+
       } catch (e) {
         coverArt.src = DEFAULT_LOGO;
       }
@@ -233,7 +250,7 @@
           if (source.title && source.title !== currentTrack) {
             currentTrack = source.title;
             
-            // Limpieza de números y guiones de la playlist de ZaraRadio
+            // Limpieza de números de lista que mete ZaraRadio
             let rawTitle = source.title.replace(/^\d+[\.\-\s]+/, '').trim();
             let cleanTitle = rawTitle.replace(/^[\d\.\-\s]+/, '').trim();
             
