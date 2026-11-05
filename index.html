@@ -146,8 +146,8 @@
     <p class="station-tagline">Emisión Online 24 Horas</p>
 
     <div class="cover-container">
-      <!-- Si logo.png no se encuentra, muestra un diseño elegante de respaldo automáticamente -->
-      <img id="coverArt" class="cover-art" src="logo.png" alt="Radio Porcuna" onerror="this.src='https://via.placeholder.com/200/1e293b/38bdf8?text=RADIO+PORCUNA'">
+      <!-- Logotipo oficial incrustado mediante la URL que has proporcionado -->
+      <img id="coverArt" class="cover-art" src="https://th.bing.com/th/id/OIP.r0GmWS-weAn_Bi_Dusc8FwAAAA?w=168&h=176&c=7&r=0&o=7&pid=1.7&rm=3" alt="Radio Porcuna">
       <span class="live-badge">EN VIVO</span>
     </div>
 
@@ -171,7 +171,8 @@
     const songArtist = document.getElementById('songArtist');
     const coverArt = document.getElementById('coverArt');
 
-    const DEFAULT_LOGO = 'logo.png';
+    // URL oficial del logotipo para cuando no haya carátula comercial
+    const DEFAULT_LOGO = 'https://th.bing.com/th/id/OIP.r0GmWS-weAn_Bi_Dusc8FwAAAA?w=168&h=176&c=7&r=0&o=7&pid=1.7&rm=3';
     let currentTrack = "";
     
     let audio = new Audio();
@@ -218,7 +219,6 @@
     async function updateMetadata() {
       try {
         const icecastUrl = 'https://canalretrohits.online:8443/status-json.xsl?_=' + new Date().getTime();
-        // Proxy ultrarrápido y directo
         const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(icecastUrl);
         
         const response = await fetch(proxyUrl);
