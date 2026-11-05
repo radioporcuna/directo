@@ -220,10 +220,14 @@
           
           if (source.title && source.title !== currentTrack) {
             currentTrack = source.title;
-            const parts = source.title.split(' - ');
+            
+            // FILTRO INTELIGENTE: Elimina números iniciales, puntos y espacios (ej: "16. Zivert" -> "Zivert")
+            let cleanTitle = source.title.replace(/^\d+[\.\-\s]+/, '').trim();
+            
+            const parts = cleanTitle.split(' - ');
             
             let artistName = "Radio Porcuna";
-            let trackName = source.title;
+            let trackName = cleanTitle;
 
             if (parts.length > 1) {
               artistName = parts[0].trim();
@@ -245,7 +249,7 @@
     }
 
     updateMetadata();
-    setInterval(updateMetadata, 3000);
+    setInterval(updateMetadata, 10000);
   </script>
 
 </body>
