@@ -194,7 +194,10 @@
 
     async function fetchCoverArt(artist, title) {
       try {
-        const query = encodeURIComponent(`${artist} ${title}`);
+        // Limpiamos paréntesis y contenido extra para que iTunes encuentre el tema base
+        let cleanQuery = `${artist} ${title}`.replace(/\([^)]*\)/g, '').trim();
+        const query = encodeURIComponent(cleanQuery);
+        
         const response = await fetch(`https://itunes.apple.com/search?term=${query}&entity=song&limit=1`);
         const data = await response.json();
 
@@ -221,7 +224,7 @@
           if (source.title && source.title !== currentTrack) {
             currentTrack = source.title;
             
-            // FILTRO INTELIGENTE: Elimina números iniciales, puntos y espacios (ej: "16. Zivert" -> "Zivert")
+            // Elimina números de la lista iniciales (ej: "16. Zivert" -> "Zivert")
             let cleanTitle = source.title.replace(/^\d+[\.\-\s]+/, '').trim();
             
             const parts = cleanTitle.split(' - ');
@@ -249,7 +252,7 @@
     }
 
     updateMetadata();
-    setInterval(updateMetadata, 5000);
+    setInterval(updateMetadata, 10000);
   </script>
 
 </body>
