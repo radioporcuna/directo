@@ -194,7 +194,6 @@
 
     async function fetchCoverArt(artist, title) {
       try {
-        // Limpiamos paréntesis y contenido extra para que iTunes encuentre el tema base
         let cleanQuery = `${artist} ${title}`.replace(/\([^)]*\)/g, '').trim();
         const query = encodeURIComponent(cleanQuery);
         
@@ -214,7 +213,11 @@
 
     async function updateMetadata() {
       try {
-        const response = await fetch('https://canalretrohits.online:8443/status-json.xsl');
+        // Usamos un proxy CORS público para saltarnos el bloqueo del navegador en GitHub Pages
+        const icecastUrl = 'https://canalretrohits.online:8443/status-json.xsl';
+        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(icecastUrl);
+        
+        const response = await fetch(proxyUrl);
         const data = await response.json();
         
         if (data && data.icestats && data.icestats.source) {
@@ -224,7 +227,7 @@
           if (source.title && source.title !== currentTrack) {
             currentTrack = source.title;
             
-            // Elimina números de la lista iniciales (ej: "16. Zivert" -> "Zivert")
+            // Recorta los números de la lista de reproducción automáticamente
             let cleanTitle = source.title.replace(/^\d+[\.\-\s]+/, '').trim();
             
             const parts = cleanTitle.split(' - ');
@@ -244,10 +247,7 @@
           }
         }
       } catch (error) {
-        if (songTitle.textContent === "Conectando al servidor...") {
-          songTitle.textContent = "Radio Porcuna";
-          songArtist.textContent = "Emisión Online";
-        }
+        console.log("Error actualizando metadatos:", error);
       }
     }
 
