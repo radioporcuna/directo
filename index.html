@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Radio Porcuna - En Directo</title>
+  <title>Radio Porcuna - Emisión Online</title>
   <style>
     * {
       box-sizing: border-box;
@@ -140,7 +140,7 @@
 
   <div class="player-card">
     <h1 class="station-name">Radio Porcuna</h1>
-    <p class="station-tagline">Emisión en Directo</p>
+    <p class="station-tagline">Emisión Online 24 Horas</p>
 
     <div class="cover-container">
       <img id="coverArt" class="cover-art" src="logo.png" alt="Radio Porcuna">
@@ -148,23 +148,18 @@
     </div>
 
     <div class="track-info">
-      <div id="songTitle" class="song-title">Cargando emisión...</div>
-      <div id="songArtist" class="song-artist">Radio Porcuna</div>
+      <div id="songTitle" class="song-title">Conectando al servidor...</div>
+      <div id="songArtist" class="song-artist">Radio Porcuna Online</div>
     </div>
 
     <button id="playBtn" class="play-btn" aria-label="Reproducir">
       <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
       <svg id="pauseIcon" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
     </button>
-
-    <audio id="audioStream" preload="none">
-      <source src="https://canalretrohits.online:8443/stream" type="audio/mpeg">
-      Tu navegador no soporta el reproductor de audio.
-    </audio>
   </div>
 
   <script>
-    const audio = document.getElementById('audioStream');
+    const streamUrl = "https://canalretrohits.online:8443/stream";
     const playBtn = document.getElementById('playBtn');
     const playIcon = document.getElementById('playIcon');
     const pauseIcon = document.getElementById('pauseIcon');
@@ -174,14 +169,24 @@
 
     const DEFAULT_LOGO = 'logo.png';
     let currentTrack = "";
+    
+    let audio = new Audio();
+    audio.preload = "none";
 
     playBtn.addEventListener('click', () => {
       if (audio.paused) {
-        audio.play();
-        playIcon.style.display = 'none';
-        pauseIcon.style.display = 'block';
+        if (!audio.src) {
+          audio.src = streamUrl;
+        }
+        audio.play().then(() => {
+          playIcon.style.display = 'none';
+          pauseIcon.style.display = 'block';
+        }).catch(err => {
+          console.log("Error al reproducir: ", err);
+        });
       } else {
         audio.pause();
+        audio.src = "";
         playIcon.style.display = 'block';
         pauseIcon.style.display = 'none';
       }
@@ -232,14 +237,15 @@
           }
         }
       } catch (error) {
-        if (songTitle.textContent === "Cargando emisión...") {
-          songTitle.textContent = "Radio Porcuna 106.9 FM";
+        if (songTitle.textContent === "Conectando al servidor...") {
+          songTitle.textContent = "Radio Porcuna";
+          songArtist.textContent = "Emisión Online";
         }
       }
     }
 
     updateMetadata();
-    setInterval(updateMetadata, 10000);
+    setInterval(updateMetadata, 3000);
   </script>
 
 </body>
