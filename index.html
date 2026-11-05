@@ -197,6 +197,7 @@
 
     async function fetchCoverArt(artist, title) {
       try {
+        // Limpiamos paréntesis y caracteres especiales para asegurar que iTunes encuentre la carátula
         let cleanQuery = `${artist} ${title}`.replace(/\([^)]*\)/g, '').trim();
         const query = encodeURIComponent(cleanQuery);
         
@@ -229,7 +230,12 @@
           if (source.title && source.title !== currentTrack) {
             currentTrack = source.title;
             
-            let cleanTitle = source.title.replace(/^\d+[\.\-\s]+/, '').trim();
+            // FILTRO POTENTE: Elimina cualquier número inicial, puntos, espacios o guiones que meta la playlist (ej: "11. Armin" -> "Armin")
+            let rawTitle = source.title.replace(/^\d+[\.\-\s]+/, '').trim();
+            
+            // Por si acaso viene con doble numeración o espacios raros
+            let cleanTitle = rawTitle.replace(/^[\d\.\-\s]+/, '').trim();
+            
             const parts = cleanTitle.split(' - ');
             
             let artistName = "Radio Porcuna";
