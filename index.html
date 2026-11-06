@@ -19,26 +19,27 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
+            height: 100dvh;
+            overflow: hidden;
+            padding: 15px;
         }
 
         .container {
             width: 100%;
-            max-width: 360px;
+            max-width: 340px;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
         }
 
-        /* Carátula / Logo circular */
+        /* Carátula / Logo circular compacto */
         .artwork-container {
-            width: 220px;
-            height: 220px;
+            width: 170px;
+            height: 170px;
             border-radius: 50%;
-            margin-bottom: 25px;
-            box-shadow: 0 0 25px rgba(255, 30, 60, 0.6);
+            margin-bottom: 15px;
+            box-shadow: 0 0 20px rgba(255, 30, 60, 0.5);
             overflow: hidden;
             border: 3px solid #ff2e4d;
             background-color: #000000;
@@ -55,16 +56,16 @@
         }
 
         h1 {
-            font-size: 2rem;
+            font-size: 1.7rem;
             font-weight: 700;
-            margin-bottom: 6px;
+            margin-bottom: 2px;
             letter-spacing: -0.5px;
         }
 
         .subtitle {
-            font-size: 1.05rem;
+            font-size: 0.9rem;
             color: #ff7b89;
-            margin-bottom: 30px;
+            margin-bottom: 18px;
             font-weight: 400;
         }
 
@@ -72,25 +73,25 @@
         .now-playing-box {
             width: 100%;
             background-color: #1a1a1a;
-            border-radius: 14px;
-            padding: 16px 20px;
+            border-radius: 12px;
+            padding: 12px 16px;
             text-align: left;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             border-left: 4px solid #ff2e4d;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
         .now-playing-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 700;
             color: #ff2e4d;
             letter-spacing: 1px;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             text-transform: uppercase;
         }
 
         .now-playing-title {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             color: #ffffff;
             white-space: nowrap;
@@ -99,7 +100,7 @@
         }
 
         .now-playing-artist {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #a0a0a0;
             margin-top: 2px;
             white-space: nowrap;
@@ -107,15 +108,15 @@
             text-overflow: ellipsis;
         }
 
-        /* Botón de reproducción */
+        /* Botón Play */
         .play-btn {
             width: 100%;
             background: linear-gradient(180deg, #ff4d6d 0%, #ff1e3c 100%);
             color: #ffffff;
             border: none;
-            border-radius: 35px;
-            padding: 18px 20px;
-            font-size: 1.1rem;
+            border-radius: 30px;
+            padding: 15px 20px;
+            font-size: 1rem;
             font-weight: 800;
             letter-spacing: 0.5px;
             cursor: pointer;
@@ -150,8 +151,9 @@
     </div>
 
     <script>
-        const URL_LOGO_BASE = "https://cdn-profiles.tunein.com/s225357/images/logog.jpg"; 
+        const DEFAULT_LOGO = "https://cdn-profiles.tunein.com/s225357/images/logog.jpg"; 
         const STREAM_URL = "https://canalretrohits.online:8443/stream";
+        const METADATA_URL = "https://canalretrohits.online:8443/status-json.xsl";
 
         const playBtn = document.getElementById('playBtn');
         const artwork = document.getElementById('artwork');
@@ -160,16 +162,17 @@
 
         const audio = new Audio();
         let isPlaying = false;
+        let lastRawTrack = "";
 
+        // Control de reproducción
         playBtn.addEventListener('click', () => {
             if (!isPlaying) {
-                audio.src = STREAM_URL;
+                audio.src = STREAM_URL + "?nocache=" + Date.now();
                 audio.play().then(() => {
                     playBtn.innerText = "PAUSAR EMISIÓN";
                     isPlaying = true;
                 }).catch(err => {
-                    console.error("Error al reproducir audio:", err);
-                    alert("No se pudo iniciar el audio. Comprueba la conexión al streaming.");
+                    alert("No se pudo conectar a la emisión.");
                 });
             } else {
                 audio.pause();
@@ -179,39 +182,81 @@
             }
         });
 
-        // Búsqueda de carátulas en la API de iTunes
-        async function fetchITunesData(query) {
-            if (!query || query.includes("Radio Porcuna") || query.includes("En directo")) {
-                artwork.src = URL_LOGO_BASE;
-                songTitle.innerText = "Radio Porcuna - En directo";
-                songArtist.innerText = "106.9 FM";
-                return;
-            }
-
+        // Consulta de portadas en la API de iTunes
+        async function searchArtwork(artist, title) {
+            let query = `${artist} ${title}`.trim();
             try {
-                let response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=1`);
-                let data = await response.json();
+                let res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=1`);
+                let data = await res.json();
 
                 if (data.results && data.results.length > 0) {
                     let track = data.results[0];
                     artwork.src = track.artworkUrl100.replace('100x100bb', '600x600bb');
-                    songTitle.innerText = track.trackName;
-                    songArtist.innerText = track.artistName;
                 } else {
-                    artwork.src = URL_LOGO_BASE;
-                    let parts = query.split('-');
-                    if (parts.length > 1) {
-                        songArtist.innerText = parts[0].trim();
-                        songTitle.innerText = parts.slice(1).join('-').trim();
-                    } else {
-                        songTitle.innerText = query;
-                        songArtist.innerText = "Radio Porcuna 106.9 FM";
-                    }
+                    artwork.src = DEFAULT_LOGO;
                 }
-            } catch (error) {
-                artwork.src = URL_LOGO_BASE;
+            } catch (e) {
+                artwork.src = DEFAULT_LOGO;
             }
         }
+
+        // Procesador de metadatos recibidos
+        function processTrackInfo(rawTrack) {
+            if (!rawTrack || rawTrack.trim() === "" || rawTrack.includes("Radio Porcuna")) {
+                songTitle.innerText = "Radio Porcuna - En directo";
+                songArtist.innerText = "106.9 FM";
+                artwork.src = DEFAULT_LOGO;
+                return;
+            }
+
+            let parts = rawTrack.split('-');
+            let artist = "";
+            let title = "";
+
+            if (parts.length >= 2) {
+                artist = parts[0].trim();
+                title = parts.slice(1).join('-').trim();
+            } else {
+                artist = "Radio Porcuna 106.9 FM";
+                title = rawTrack.trim();
+            }
+
+            songTitle.innerText = title;
+            songArtist.innerText = artist;
+
+            searchArtwork(artist, title);
+        }
+
+        // Lógica de captura de metadatos desde Icecast
+        async function fetchMetadata() {
+            try {
+                let response = await fetch(METADATA_URL, { cache: "no-store" });
+                let data = await response.json();
+                
+                let track = "";
+                if (data && data.icestats) {
+                    let source = data.icestats.source;
+                    if (Array.isArray(source)) {
+                        source = source[0];
+                    }
+                    if (source) {
+                        track = source.title || source.song || source.yp_currently_playing || "";
+                    }
+                }
+
+                if (track && track !== lastRawTrack) {
+                    lastRawTrack = track;
+                    processTrackInfo(track);
+                }
+            } catch (err) {
+                // Si la consulta directa a status-json es bloqueada por la política del navegador,
+                // mantenemos la interfaz limpia sin colapsar.
+            }
+        }
+
+        // Consultar cada 5 segundos
+        setInterval(fetchMetadata, 5000);
+        fetchMetadata();
     </script>
 </body>
 </html>
