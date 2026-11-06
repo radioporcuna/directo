@@ -33,7 +33,7 @@
             text-align: center;
         }
 
-        /* Carátula / Logo circular compacto */
+        /* Carátula / Logo circular */
         .artwork-container {
             width: 170px;
             height: 170px;
@@ -131,7 +131,6 @@
 <body>
 
     <div class="container">
-        <!-- Logo circular oficial de la emisora -->
         <div class="artwork-container">
             <img id="artwork" class="artwork" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Radio Porcuna">
         </div>
@@ -139,14 +138,12 @@
         <h1>Radio Porcuna</h1>
         <div class="subtitle">La radio de nuestra tierra</div>
 
-        <!-- Bloque Sonando Ahora -->
         <div class="now-playing-box">
             <div class="now-playing-label">SONANDO AHORA:</div>
             <div id="songTitle" class="now-playing-title">Radio Porcuna - En directo</div>
             <div id="songArtist" class="now-playing-artist">106.9 FM</div>
         </div>
 
-        <!-- Botón Play -->
         <button id="playBtn" class="play-btn">ESCUCHAR EN DIRECTO</button>
     </div>
 
@@ -164,7 +161,6 @@
         let isPlaying = false;
         let lastRawTrack = "";
 
-        // Control de reproducción
         playBtn.addEventListener('click', () => {
             if (!isPlaying) {
                 audio.src = STREAM_URL + "?nocache=" + Date.now();
@@ -182,7 +178,6 @@
             }
         });
 
-        // Consulta de portadas en la API de iTunes
         async function searchArtwork(artist, title) {
             let query = `${artist} ${title}`.trim();
             try {
@@ -200,7 +195,6 @@
             }
         }
 
-        // Procesador de metadatos recibidos
         function processTrackInfo(rawTrack) {
             if (!rawTrack || rawTrack.trim() === "" || rawTrack.includes("Radio Porcuna")) {
                 songTitle.innerText = "Radio Porcuna - En directo";
@@ -227,35 +221,51 @@
             searchArtwork(artist, title);
         }
 
-        // Lógica de captura de metadatos desde Icecast
         async function fetchMetadata() {
+            let track = "";
+
+            // Intento 1: Directo al Icecast
             try {
                 let response = await fetch(METADATA_URL, { cache: "no-store" });
                 let data = await response.json();
-                
-                let track = "";
-                if (data && data.icestats) {
-                    let source = data.icestats.source;
-                    if (Array.isArray(source)) {
-                        source = source[0];
-                    }
-                    if (source) {
-                        track = source.title || source.song || source.yp_currently_playing || "";
-                    }
-                }
-
-                if (track && track !== lastRawTrack) {
-                    lastRawTrack = track;
-                    processTrackInfo(track);
-                }
+                track = extractTrackFromJSON(data);
             } catch (err) {
-                // Si la consulta directa a status-json es bloqueada por la política del navegador,
-                // mantenemos la interfaz limpia sin colapsar.
+                // Intento 2: Proxy AllOrigins para saltar bloqueo CORS
+                try {
+                    let proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(METADATA_URL + "?ts=" + Date.now());
+                    let response = await fetch(proxyUrl);
+                    let data = await response.json();
+                    track = extractTrackFromJSON(data);
+                } catch (err2) {
+                    // Intento 3: Proxy Corsproxy
+                    try {
+                        let proxyUrl2 = "https://corsproxy.io/?" + encodeURIComponent(METADATA_URL);
+                        let response = await fetch(proxyUrl2);
+                        let data = await response.json();
+                        track = extractTrackFromJSON(data);
+                    } catch (err3) {}
+                }
+            }
+
+            if (track && track !== lastRawTrack) {
+                lastRawTrack = track;
+                processTrackInfo(track);
             }
         }
 
-        // Consultar cada 5 segundos
-        setInterval(fetchMetadata, 5000);
+        function extractTrackFromJSON(data) {
+            if (!data || !data.icestats) return "";
+            let source = data.icestats.source;
+            if (Array.isArray(source)) {
+                source = source[0];
+            }
+            if (source) {
+                return source.title || source.song || source.yp_currently_playing || "";
+            }
+            return "";
+        }
+
+        setInterval(fetchMetadata, 4000);
         fetchMetadata();
     </script>
 </body>
