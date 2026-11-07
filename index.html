@@ -33,7 +33,7 @@
             text-align: center;
         }
 
-        /* Carátula / logo circular */
+        /* Carátula / Logo circular */
         .artwork-container {
             width: 170px;
             height: 170px;
@@ -64,7 +64,7 @@
 
         .subtitle {
             font-size: 0.9rem;
-            color: #ff7h89;
+            color: #ff7b89;
             margin-bottom: 18px;
             font-weight: 400;
         }
@@ -100,7 +100,7 @@
         }
 
         .now-playing-artist {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #a0a0a0;
             margin-top: 2px;
             white-space: nowrap;
@@ -130,168 +130,143 @@
 </head>
 <body>
 
-<div class="container">
-    <div class="artwork-container">
-        <img id="artwork" class="artwork" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Radio Porcuna">
+    <div class="container">
+        <div class="artwork-container">
+            <img id="artwork" class="artwork" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Radio Porcuna">
+        </div>
+
+        <h1>Radio Porcuna</h1>
+        <div class="subtitle">La radio de nuestra tierra</div>
+
+        <div class="now-playing-box">
+            <div class="now-playing-label">SONANDO AHORA:</div>
+            <div id="songTitle" class="now-playing-title">Radio Porcuna - En directo</div>
+            <div id="songArtist" class="now-playing-artist">106.9 FM</div>
+        </div>
+
+        <button id="playBtn" class="play-btn">ESCUCHAR EN DIRECTO</button>
     </div>
 
-    <h1>Radio Porcuna</h1>
-    <div class="subtitle">La radio de nuestra tierra</div>
+    <script>
+        const DEFAULT_LOGO = "https://cdn-profiles.tunein.com/s225357/images/logog.jpg"; 
+        const STREAM_URL = "https://canalretrohits.online:8443/stream";
+        const METADATA_URL = "https://canalretrohits.online:8443/status-json.xsl";
 
-    <div class="now-playing-box">
-        <div class="now-playing-label">SONANDO AHORA:</div>
-        <div id="songTitle" class="now-playing-title">Radio Porcuna - En directo</div>
-        <div id="songArtist" class="now-playing-artist">106.9 FM</div>
-    </div>
+        const playBtn = document.getElementById('playBtn');
+        const artwork = document.getElementById('artwork');
+        const songTitle = document.getElementById('songTitle');
+        const songArtist = document.getElementById('songArtist');
 
-    <button id="playBtn" class="play-btn">ESCUCHAR EN DIRECTO</button>
-</div>
+        const audio = new Audio();
+        let isPlaying = false;
+        let lastRawTrack = "";
 
-<script>
-    const DEFAULT_LOGO = "https://cdn-profiles.tunein.com/s225357/images/logog.jpg";
-    const STREAM_URL = "https://canalretrohits.online:8443/stream";
-    const METADATA_URL = "https://canalretrohits.online:8443/status-json.xsl";
-
-    const playBtn = document.getElementById('playBtn');
-    const artwork = document.getElementById('artwork');
-    const songTitle = document.getElementById('songTitle');
-    const songArtist = document.getElementById('songArtist');
-
-    const audio = new Audio();
-    let isPlaying = false;
-    let lastRawTrack = "";
-
-    // --- CÓDIGO AÑADIDO PARA MANTENER LA PANTALLA ENCENDIDA (WAKE LOCK) ---
-    let wakeLock = null;
-
-    async function requestWakeLock() {
-        try {
-            if ('wakeLock' in navigator) {
-                wakeLock = await navigator.wakeLock.request('screen');
-                wakeLock.addEventListener('release', () => { wakeLock = null; });
-            }
-        } catch (err) {}
-    }
-
-    document.addEventListener('visibilitychange', async () => {
-        if (wakeLock === null && document.visibilityState === 'visible' && isPlaying) {
-            await requestWakeLock();
-        }
-    });
-    // -----------------------------------------------------------------------
-
-    playBtn.addEventListener('click', () => {
-        if (!isPlaying) {
-            audio.src = STREAM_URL + "?nocache=" + Date.now();
-            audio.play().then(() => {
-                playBtn.innerText = "PAUSAR EMISIÓN";
-                isPlaying = true;
-                requestWakeLock(); // Activa el bloqueo de pantalla al reproducir
-            }).catch(e => {
-                alert("No se pudo conectar a la emisión.");
-            });
-        } else {
-            audio.pause();
-            audio.src = "";
-            playBtn.innerText = "ESCUCHAR EN DIRECTO";
-            isPlaying = false;
-            if (wakeLock !== null) {
-                wakeLock.release(); // Libera la pantalla si detienes la radio
-                wakeLock = null;
-            }
-        }
-    });
-
-    async function searchArtwork(artist, title) {
-        let query = `${artist} ${title}`.trim();
-        try {
-            let res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=1`);
-            let data = await res.json();
-
-            if (data.results && data.results.length > 0) {
-                let track = data.results[0];
-                artwork.src = track.artworkUrl100.replace('100x100bb', '600x600bb');
+        playBtn.addEventListener('click', () => {
+            if (!isPlaying) {
+                audio.src = STREAM_URL + "?nocache=" + Date.now();
+                audio.play().then(() => {
+                    playBtn.innerText = "PAUSAR EMISIÓN";
+                    isPlaying = true;
+                }).catch(err => {
+                    alert("No se pudo conectar a la emisión.");
+                });
             } else {
+                audio.pause();
+                audio.src = "";
+                playBtn.innerText = "ESCUCHAR EN DIRECTO";
+                isPlaying = false;
+            }
+        });
+
+        async function searchArtwork(artist, title) {
+            let query = `${artist} ${title}`.trim();
+            try {
+                let res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=1`);
+                let data = await res.json();
+
+                if (data.results && data.results.length > 0) {
+                    let track = data.results[0];
+                    artwork.src = track.artworkUrl100.replace('100x100bb', '600x600bb');
+                } else {
+                    artwork.src = DEFAULT_LOGO;
+                }
+            } catch (e) {
                 artwork.src = DEFAULT_LOGO;
             }
-        } catch (e) {
-            artwork.src = DEFAULT_LOGO;
-        }
-    }
-
-    function processTrackInfo(rawTrack) {
-        if (!rawTrack || !rawTrack.trim() || rawTrack.includes("Radio Porcuna")) {
-            songTitle.innerText = "Radio Porcuna - En directo";
-            songArtist.innerText = "106.9 FM";
-            artwork.src = DEFAULT_LOGO;
-            return;
         }
 
-        let parts = rawTrack.split(' - ');
-        let artist = "";
-        let title = "";
+        function processTrackInfo(rawTrack) {
+            if (!rawTrack || rawTrack.trim() === "" || rawTrack.includes("Radio Porcuna")) {
+                songTitle.innerText = "Radio Porcuna - En directo";
+                songArtist.innerText = "106.9 FM";
+                artwork.src = DEFAULT_LOGO;
+                return;
+            }
 
-        if (parts.length >= 2) {
-            artist = parts[0].trim();
-            title = parts.slice(1).join(' - ').trim();
-        } else {
-            artist = "Radio Porcuna 106.9 FM";
-            title = rawTrack.trim();
+            let parts = rawTrack.split('-');
+            let artist = "";
+            let title = "";
+
+            if (parts.length >= 2) {
+                artist = parts[0].trim();
+                title = parts.slice(1).join('-').trim();
+            } else {
+                artist = "Radio Porcuna 106.9 FM";
+                title = rawTrack.trim();
+            }
+
+            songTitle.innerText = title;
+            songArtist.innerText = artist;
+
+            searchArtwork(artist, title);
         }
 
-        songTitle.innerText = title;
-        songArtist.innerText = artist;
+        async function fetchMetadata() {
+            let track = "";
 
-        searchArtwork(artist, title);
-    }
-
-    async function fetchMetadata() {
-        let track = "";
-
-        // Intento 1: Directo al Icecast
-        try {
-            let response = await fetch(METADATA_URL, { cache: "no-store" });
-            let data = await response.json();
-            track = extractTrackFromJSON(data);
-        } catch (err) {
-            // Intento 2: Proxy AllOrigins para saltar bloqueos CORS
+            // Intento 1: Directo al Icecast
             try {
-                let proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(METADATA_URL + "?ts=" + Date.now());
-                let response = await fetch(proxyUrl);
+                let response = await fetch(METADATA_URL, { cache: "no-store" });
                 let data = await response.json();
                 track = extractTrackFromJSON(data);
-            } catch (err2) {
-                // Intento 3: Proxy Corsproxy
+            } catch (err) {
+                // Intento 2: Proxy AllOrigins para saltar bloqueo CORS
                 try {
-                    let proxyUrl2 = "https://corsproxy.io/?" + encodeURIComponent(METADATA_URL);
-                    let response = await fetch(proxyUrl2);
+                    let proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(METADATA_URL + "?ts=" + Date.now());
+                    let response = await fetch(proxyUrl);
                     let data = await response.json();
                     track = extractTrackFromJSON(data);
-                } catch (err3) {}
+                } catch (err2) {
+                    // Intento 3: Proxy Corsproxy
+                    try {
+                        let proxyUrl2 = "https://corsproxy.io/?" + encodeURIComponent(METADATA_URL);
+                        let response = await fetch(proxyUrl2);
+                        let data = await response.json();
+                        track = extractTrackFromJSON(data);
+                    } catch (err3) {}
+                }
+            }
+
+            if (track && track !== lastRawTrack) {
+                lastRawTrack = track;
+                processTrackInfo(track);
             }
         }
 
-        if (track && track !== lastRawTrack) {
-            lastRawTrack = track;
-            processTrackInfo(track);
+        function extractTrackFromJSON(data) {
+            if (!data || !data.icestats) return "";
+            let source = data.icestats.source;
+            if (Array.isArray(source)) {
+                source = source[0];
+            }
+            if (source) {
+                return source.title || source.song || source.yp_currently_playing || "";
+            }
+            return "";
         }
-    }
 
-    function extractTrackFromJSON(data) {
-        if (!data || !data.icestats) return "";
-        let source = data.icestats.source;
-        if (Array.isArray(source)) {
-            source = source[0];
-        }
-        if (source) {
-            return source.title || source.song || source.yp_currently_playing || "";
-        }
-        return "";
-    }
-
-    setInterval(fetchMetadata, 4000);
-    fetchMetadata();
-</script>
-
+        setInterval(fetchMetadata, 4000);
+        fetchMetadata();
+    </script>
 </body>
 </html>
