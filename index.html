@@ -159,10 +159,9 @@
         const audio = new Audio();
         let isPlaying = false;
         let lastRawTrack = "";
-
-        // Funciones para gestionar que la pantalla no se apague (Screen Wake Lock)
         let wakeLock = null;
 
+        // Gestión del Wake Lock para evitar que se apague la pantalla
         async function requestWakeLock() {
             try {
                 if ('wakeLock' in navigator) {
@@ -172,7 +171,7 @@
                     });
                 }
             } catch (err) {
-                console.error(`Wake Lock Error: ${err.name}, ${err.message}`);
+                console.error("Wake Lock error:", err);
             }
         }
 
@@ -183,49 +182,78 @@
             }
         }
 
-        // Control del botón de reproducción / pausa
+        // Configurar MediaSession para que el sistema mantenga vivo el reproductor y metadatos
+        function updateMediaSession(title, artist, artUrl) {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: title,
+                    artist: artist,
+                    album: "Radio Porcuna 106.9 FM",
+                    artwork: [
+                        { src: artUrl, sizes: '512x512', type: 'image/jpeg' }
+                    ]
+                });
+
+                navigator.mediaSession.setActionHandler('play', () => { startPlayback(); });
+                navigator.mediaSession.setActionHandler('pause', () => { stopPlayback(); });
+            }
+        }
+
+        function startPlayback() {
+            audio.src = STREAM_URL + "?nocache=" + Date.now();
+            audio.play().then(() => {
+                playBtn.innerText = "PAUSAR EMISIÓN";
+                isPlaying = true;
+                requestWakeLock();
+                updateMediaSession(songTitle.innerText, songArtist.innerText, artwork.src);
+            }).catch(err => {
+                alert("No se pudo conectar a la emisión.");
+            });
+        }
+
+        function stopPlayback() {
+            audio.pause();
+            audio.src = "";
+            playBtn.innerText = "ESCUCHAR EN DIRECTO";
+            isPlaying = false;
+            releaseWakeLock();
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = "paused";
+            }
+        }
+
         playBtn.addEventListener('click', () => {
             if (!isPlaying) {
-                audio.src = STREAM_URL + "?nocache=" + Date.now();
-                audio.play().then(() => {
-                    playBtn.innerText = "PAUSAR EMISIÓN";
-                    isPlaying = true;
-                    requestWakeLock(); // Activa el bloqueo de apagado de pantalla
-                }).catch(err => {
-                    alert("No se pudo conectar a la emisión.");
-                });
+                startPlayback();
             } else {
-                audio.pause();
-                audio.src = "";
-                playBtn.innerText = "ESCUCHAR EN DIRECTO";
-                isPlaying = false;
-                releaseWakeLock(); // Desactiva el bloqueo para que el móvil funcione normal
+                stopPlayback();
             }
         });
 
-        // Recuperar carátulas en iTunes
+        // Buscar carátulas en iTunes
         async function searchArtwork(artist, title) {
             let query = `${artist} ${title}`.trim();
             try {
                 let res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=1`);
                 let data = await res.json();
+                let artUrl = DEFAULT_LOGO;
                 if (data.results && data.results.length > 0) {
-                    let track = data.results[0];
-                    artwork.src = track.artworkUrl100.replace('100x100bb', '600x600bb');
-                } else {
-                    artwork.src = DEFAULT_LOGO;
+                    artUrl = data.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
                 }
+                artwork.src = artUrl;
+                updateMediaSession(songTitle.innerText, songArtist.innerText, artUrl);
             } catch (e) {
                 artwork.src = DEFAULT_LOGO;
             }
         }
 
-        // Procesar metadatos de la canción
+        // Procesar metadatos
         function processTrackInfo(rawTrack) {
             if (!rawTrack || !rawTrack.trim() || rawTrack.includes("Radio Porcuna")) {
                 songTitle.innerText = "Radio Porcuna - En directo";
                 songArtist.innerText = "106.9 FM";
                 artwork.src = DEFAULT_LOGO;
+                updateMediaSession("Radio Porcuna - En directo", "106.9 FM", DEFAULT_LOGO);
                 return;
             }
 
@@ -246,7 +274,6 @@
             searchArtwork(artist, title);
         }
 
-        // Extraer la información desde el JSON de Icecast
         function extractTrackFromJSON(data) {
             if (!data || !data.icestats) return "";
             let source = data.icestats.source;
@@ -259,10 +286,10 @@
             return "";
         }
 
-        // Consulta periódica de los metadatos de la emisión
+        // Consulta de metadatos con sistema de respaldo por Proxy
         async function fetchMetadata() {
             try {
-                let response = await fetch(METADATA_URL);
+                let response = await fetch(METADATA_URL, { cache: 'no-store' });
                 let data = await response.json();
                 let track = extractTrackFromJSON(data);
                 if (track && track !== lastRawTrack) {
@@ -270,7 +297,6 @@
                     processTrackInfo(track);
                 }
             } catch (err) {
-                // Si falla el directo, reintenta con corsproxy
                 try {
                     let proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(METADATA_URL);
                     let response = await fetch(proxyUrl);
@@ -281,15 +307,16 @@
                         processTrackInfo(track);
                     }
                 } catch (err2) {
-                    // Manejo silencioso de errores de proxy
+                    // Error silencioso si falla la red temporalmente
                 }
             }
         }
 
-        // Reacondicionar el bloqueo si cambia la visibilidad de la pestaña y la radio sigue sonando
+        // Mantener activo si se recupera la visibilidad de la pestaña
         document.addEventListener('visibilitychange', async () => {
-            if (wakeLock !== null && document.visibilityState === 'visible' && isPlaying) {
-                await requestWakeLock();
+            if (document.visibilityState === 'visible' && isPlaying) {
+                if (wakeLock === null) await requestWakeLock();
+                fetchMetadata();
             }
         });
 
