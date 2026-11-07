@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Radio Porcuna - En Directo</title>
 <style>
-    /* Forzar pantalla completa absoluta sin márgenes ni scroll */
+    /* Forzar pantalla completa absoluta sin márgenes ni scroll y fondo negro puro */
     html, body {
         margin: 0;
         padding: 0;
@@ -19,9 +19,9 @@
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    /* Tarjeta del reproductor adaptada a pantalla completa en móviles */
+    /* Tarjeta del reproductor adaptada a pantalla completa en móviles (Sin bordes rojos) */
     .radio-card {
-        background: linear-gradient(135deg, #1a1a1a, #2c1e1e);
+        background: #000000;
         color: #fff;
         padding: 30px 20px;
         width: 100%;
@@ -39,14 +39,15 @@
         border-radius: 0;
     }
 
-    /* Contenedor interno sin borde rojo (todo negro) */
+    /* Contenedor interno en pantallas grandes totalmente negro y sin bordes de colores */
     @media (min-width: 600px) {
         .radio-card {
             max-width: 450px;
             height: auto;
             border-radius: 16px;
-            border: none; /* Sin borde rojo */
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            background: #111111;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
             padding: 30px;
         }
     }
@@ -86,7 +87,7 @@
 
     /* Caja de la canción actual */
     .metadata-box {
-        background: rgba(0, 0, 0, 0.6);
+        background: rgba(20, 20, 20, 0.9);
         padding: 15px 20px;
         border-radius: 12px;
         margin-bottom: 25px;
@@ -206,12 +207,15 @@
         }
     }
 
-    // Función para buscar la carátula en iTunes según el artista y canción
+    // Función optimizada para buscar carátulas limpiando años y paréntesis
     function fetchAlbumArt(trackName) {
         if (!trackName || trackName === currentTrackText) return;
         currentTrackText = trackName;
 
-        const itunesUrl = 'https://itunes.apple.com/search?term=' + encodeURIComponent(trackName) + '&limit=1&media=music';
+        // Limpiar años entre paréntesis (ej: "(1993)") para que iTunes encuentre la canción seguro
+        let cleanQuery = trackName.replace(/\(\d{4}\)/g, '').trim();
+
+        const itunesUrl = 'https://itunes.apple.com/search?term=' + encodeURIComponent(cleanQuery) + '&limit=1&media=music';
         
         fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(itunesUrl))
             .then(res => res.json())
@@ -219,13 +223,11 @@
                 const parsed = JSON.parse(data.contents);
                 if (parsed.results && parsed.results.length > 0) {
                     let artworkUrl = parsed.results[0].artworkUrl100;
-                    // Cambiar resolución a alta calidad (600x600)
                     if (artworkUrl) {
                         artworkUrl = artworkUrl.replace('100x100bb.jpg', '600x600bb.jpg');
                         stationLogo.src = artworkUrl;
                     }
                 } else {
-                    // Si no encuentra carátula, deja el logo oficial de la emisora
                     stationLogo.src = "https://cdn-profiles.tunein.com/s225357/images/logog.jpg?t=156985";
                 }
             })
@@ -250,10 +252,9 @@
                     }
                     if (source && source.title) {
                         let rawTitle = source.title;
-                        let cleanTitle = rawTitle.replace(/^\d+\.\s*/, ''); // Limpiar numeración de ZaraRadio
+                        let cleanTitle = rawTitle.replace(/^\d+\.\s*/, ''); // Limpiar numeración
                         nowPlaying.innerText = cleanTitle;
                         
-                        // Actualizar carátula buscando en iTunes
                         fetchAlbumArt(cleanTitle);
                     }
                 }
