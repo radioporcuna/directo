@@ -52,7 +52,7 @@
         }
     }
 
-    /* Logotipo / Portada del disco */
+    /* Logotipo oficial de Radio Porcuna */
     .logo-container {
         position: relative;
         width: 140px;
@@ -139,16 +139,16 @@
 <body>
 
 <div class="radio-card">
-    <!-- Logotipo / Portada del disco -->
+    <!-- Logotipo oficial -->
     <div class="logo-container">
-        <img id="station-logo" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg?t=156985" alt="Radio Porcuna">
+        <img src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg?t=156985" alt="Radio Porcuna">
     </div>
 
     <!-- Títulos -->
     <h3>Radio Porcuna</h3>
     <div class="subtitle">La radio de nuestra tierra</div>
 
-    <!-- Caja de metadatos (Canción actual) -->
+    <!-- Caja de metadatos (Canción actual - tal cual tu versión antigua) -->
     <div class="metadata-box">
         <div class="metadata-title">Sonando ahora:</div>
         <p id="now-playing">Radio Porcuna - En directo</p>
@@ -165,9 +165,8 @@
     const audio = document.getElementById('stream-audio');
     const playBtn = document.getElementById('play-btn');
     const nowPlaying = document.getElementById('now-playing');
-    const stationLogo = document.getElementById('station-logo');
 
-    let currentTrackText = "";
+    // Variable para el bloqueo de pantalla (Wake Lock)
     let wakeLock = null;
 
     async function requestWakeLock() {
@@ -185,6 +184,7 @@
         }
     });
 
+    // Precarga el flujo en segundo plano
     window.addEventListener('DOMContentLoaded', () => {
         audio.load();
     });
@@ -194,8 +194,10 @@
             audio.play().then(() => {
                 playBtn.innerText = "EN DIRECTO (REPRODUCIENDO)";
                 playBtn.style.background = "#cc0000";
-                requestWakeLock();
-            }).catch(error => {});
+                requestWakeLock(); // Mantiene la pantalla encendida mientras suena
+            }).catch(error => {
+                console.log("Error al reproducir:", error);
+            });
         } else {
             audio.pause();
             playBtn.innerText = "ESCUCHAR EN DIRECTO";
@@ -207,38 +209,8 @@
         }
     }
 
-    // Función optimizada para buscar carátulas limpiando años y paréntesis
-    function fetchAlbumArt(trackName) {
-        if (!trackName || trackName === currentTrackText) return;
-        currentTrackText = trackName;
-
-        // Limpiar años entre paréntesis (ej: "(1993)") para que iTunes encuentre la canción seguro
-        let cleanQuery = trackName.replace(/\(\d{4}\)/g, '').trim();
-
-        const itunesUrl = 'https://itunes.apple.com/search?term=' + encodeURIComponent(cleanQuery) + '&limit=1&media=music';
-        
-        fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(itunesUrl))
-            .then(res => res.json())
-            .then(data => {
-                const parsed = JSON.parse(data.contents);
-                if (parsed.results && parsed.results.length > 0) {
-                    let artworkUrl = parsed.results[0].artworkUrl100;
-                    if (artworkUrl) {
-                        artworkUrl = artworkUrl.replace('100x100bb.jpg', '600x600bb.jpg');
-                        stationLogo.src = artworkUrl;
-                    }
-                } else {
-                    stationLogo.src = "https://cdn-profiles.tunein.com/s225357/images/logog.jpg?t=156985";
-                }
-            })
-            .catch(() => {});
-    }
-
     function updateMetadata() {
-        const timestamp = new Date().getTime();
-        const targetUrl = 'https://canalretrohits.online:8443/status-json.xsl?_t=' + timestamp;
-        
-        fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl))
+        fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://canalretrohits.online:8443/status-json.xsl'))
             .then(response => {
                 if (response.ok) return response.json();
                 throw new Error('Network response was not ok');
@@ -252,10 +224,8 @@
                     }
                     if (source && source.title) {
                         let rawTitle = source.title;
-                        let cleanTitle = rawTitle.replace(/^\d+\.\s*/, ''); // Limpiar numeración
+                        let cleanTitle = rawTitle.replace(/^\d+\.\s*/, ''); // Limpiar numeración de ZaraRadio si la hubiera
                         nowPlaying.innerText = cleanTitle;
-                        
-                        fetchAlbumArt(cleanTitle);
                     }
                 }
             })
