@@ -161,7 +161,7 @@
         let lastRawTrack = "";
         let wakeLock = null;
 
-        // Gestión del Wake Lock para evitar que se apague la pantalla
+        // Gestión del Wake Lock (evita que se apague la pantalla)
         async function requestWakeLock() {
             try {
                 if ('wakeLock' in navigator) {
@@ -180,7 +180,7 @@
             }
         }
 
-        // Configurar MediaSession para estabilidad en segundo plano y controles del sistema
+        // MediaSession para controles en pantalla de bloqueo y estabilidad
         function updateMediaSession(title, artist, artUrl) {
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.metadata = new MediaMetadata({
@@ -242,7 +242,7 @@
             }
         }
 
-        // Procesar metadatos (idéntico a tu versión original)
+        // Procesar metadatos
         function processTrackInfo(rawTrack) {
             if (!rawTrack || !rawTrack.trim() || rawTrack.includes("Radio Porcuna")) {
                 songTitle.innerText = "Radio Porcuna - En directo";
@@ -281,33 +281,40 @@
             return "";
         }
 
-        // Consulta de metadatos original (Directo + Respaldo Corsproxy)
+        // Sistema robusto de lectura con múltiples pasarelas proxy para evitar bloqueos CORS
         async function fetchMetadata() {
+            let track = "";
+            
+            // Intento 1: Proxy AllOrigins
             try {
-                let response = await fetch(METADATA_URL);
-                let data = await response.json();
-                let track = extractTrackFromJSON(data);
-                if (track && track !== lastRawTrack) {
-                    lastRawTrack = track;
-                    processTrackInfo(track);
-                }
-            } catch (err) {
+                let res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(METADATA_URL));
+                let data = await res.json();
+                track = extractTrackFromJSON(data);
+            } catch (e1) {
+                // Intento 2: Proxy CorsProxy.io
                 try {
-                    let proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(METADATA_URL);
-                    let response = await fetch(proxyUrl);
-                    let data = await response.json();
-                    let track = extractTrackFromJSON(data);
-                    if (track && track !== lastRawTrack) {
-                        lastRawTrack = track;
-                        processTrackInfo(track);
+                    let res = await fetch("https://corsproxy.io/?" + encodeURIComponent(METADATA_URL));
+                    let data = await res.json();
+                    track = extractTrackFromJSON(data);
+                } catch (e2) {
+                    // Intento 3: Conexión directa
+                    try {
+                        let res = await fetch(METADATA_URL);
+                        let data = await res.json();
+                        track = extractTrackFromJSON(data);
+                    } catch (e3) {
+                        // Silencioso
                     }
-                } catch (err2) {
-                    // Silencioso si hay error temporal de red
                 }
+            }
+
+            if (track && track !== lastRawTrack) {
+                lastRawTrack = track;
+                processTrackInfo(track);
             }
         }
 
-        // Mantener activo si se recupera la visibilidad de la pestaña
+        // Mantener activo al cambiar de pestaña
         document.addEventListener('visibilitychange', async () => {
             if (document.visibilityState === 'visible' && isPlaying) {
                 if (wakeLock === null) await requestWakeLock();
