@@ -1,330 +1,248 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radio Porcuna</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radio Porcuna - En Directo</title>
+<style>
+    /* Forzar pantalla completa absoluta sin márgenes ni scroll */
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #000000;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
-        body {
-            background-color: #121212;
-            color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100dvh;
-            overflow: hidden;
-            padding: 15px;
-        }
+    /* Tarjeta del reproductor adaptada a pantalla completa en móviles */
+    .radio-card {
+        background: linear-gradient(135deg, #1a1a1a, #2c1e1e);
+        color: #fff;
+        padding: 30px 20px;
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        border: none;
+        box-shadow: none;
+        border-radius: 0;
+    }
 
-        .container {
-            width: 100%;
-            max-width: 340px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
+    /* Contenedor interno para mantener la elegancia en pantallas grandes o tablets */
+    @media (min-width: 600px) {
+        .radio-card {
+            max-width: 450px;
+            height: auto;
+            border-radius: 16px;
+            border: 2px solid #ff3333;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            padding: 30px;
         }
+    }
 
-        /* Carátula / Logo circular */
-        .artwork-container {
-            width: 170px;
-            height: 170px;
-            border-radius: 50%;
-            margin-bottom: 15px;
-            box-shadow: 0 0 20px rgba(255, 30, 60, 0.5);
-            overflow: hidden;
-            border: 3px solid #ff2e4d;
-            background-color: #000000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    /* Logotipo oficial de Radio Porcuna */
+    .logo-container {
+        position: relative;
+        width: 140px;
+        height: 140px;
+        margin: 0 auto 20px auto;
+        border-radius: 50%;
+        background: #111;
+        border: 4px solid #ff3333;
+        box-shadow: 0 4px 15px rgba(255,51,51,0.4);
+        overflow: hidden;
+    }
 
-        .artwork {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
+    .logo-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
 
-        h1 {
-            font-size: 1.7rem;
-            font-weight: 700;
-            margin-bottom: 2px;
-            letter-spacing: -0.5px;
-        }
+    h3 {
+        margin: 0;
+        font-size: 26px;
+        color: #ffffff;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
 
-        .subtitle {
-            font-size: 0.9rem;
-            color: #ff7b89;
-            margin-bottom: 15px;
-            font-weight: 400;
-        }
+    .subtitle {
+        margin: 5px 0 25px 0;
+        font-size: 14px;
+        color: #ff9999;
+    }
 
-        /* Caja Sonando Ahora */
-        .now-playing-box {
-            width: 100%;
-            background-color: #1a1a1a;
-            border-radius: 12px;
-            padding: 12px 10px;
-            text-align: left;
-            margin-bottom: 20px;
-            border-left: 4px solid #ff2e4d;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
+    /* Caja de la canción actual */
+    .metadata-box {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 15px 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        border-left: 4px solid #ff3333;
+        text-align: left;
+        width: 85%;
+        max-width: 380px;
+    }
 
-        .now-playing-label {
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: #ff2e4d;
-            letter-spacing: 1px;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-        }
+    .metadata-title {
+        font-size: 11px;
+        color: #ff6666;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
 
-        .now-playing-title {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #ffffff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+    #now-playing {
+        margin: 0;
+        font-size: 15px;
+        color: #ffffff;
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 
-        .now-playing-artist {
-            font-size: 0.8rem;
-            color: #a0a0a0;
-            margin-top: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+    /* Botón de Play grande y cómodo para móviles */
+    #play-btn {
+        background: #ff3333;
+        color: #ffffff;
+        border: none;
+        padding: 16px 35px;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 35px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 20px rgba(255, 51, 51, 0.5);
+        width: 85%;
+        max-width: 380px;
+    }
 
-        .play-btn {
-            width: 100%;
-            background: linear-gradient(180deg, #ff4d6d 0%, #ff1e3c 100%);
-            color: #ffffff;
-            border: none;
-            border-radius: 30px;
-            padding: 15px 20px;
-            font-size: 1rem;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            box-shadow: 0 6px 20px rgba(255, 30, 60, 0.4);
-        }
-
-        .play-btn:active {
-            transform: scale(0.98);
-        }
-    </style>
+    #play-btn:active {
+        transform: scale(0.98);
+    }
+</style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="artwork-container">
-            <img id="artwork" class="artwork" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Logo Radio">
-        </div>
-
-        <h1>Radio Porcuna</h1>
-        <div class="subtitle">La radio de nuestra tierra</div>
-
-        <div class="now-playing-box">
-            <div class="now-playing-label">SONANDO AHORA:</div>
-            <div id="songTitle" class="now-playing-title">Radio Porcuna - En directo</div>
-            <div id="songArtist" class="now-playing-artist">106.9 FM</div>
-        </div>
-
-        <button id="playBtn" class="play-btn">ESCUCHAR EN DIRECTO</button>
+<div class="radio-card">
+    <!-- Logotipo oficial -->
+    <div class="logo-container">
+        <img src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg?t=156985" alt="Radio Porcuna">
     </div>
 
-    <script>
-        const DEFAULT_LOGO = "https://cdn-profiles.tunein.com/s225357/images/logog.jpg";
-        const STREAM_URL = "https://canalretrohits.online:8443/stream";
-        const METADATA_URL = "https://canalretrohits.online:8443/status-json.xsl";
+    <!-- Títulos -->
+    <h3>Radio Porcuna</h3>
+    <div class="subtitle">La radio de nuestra tierra</div>
 
-        const playBtn = document.getElementById('playBtn');
-        const artwork = document.getElementById('artwork');
-        const songTitle = document.getElementById('songTitle');
-        const songArtist = document.getElementById('songArtist');
+    <!-- Caja de metadatos (Canción actual) -->
+    <div class="metadata-box">
+        <div class="metadata-title">Sonando ahora:</div>
+        <p id="now-playing">Radio Porcuna - En directo</p>
+    </div>
 
-        const audio = new Audio();
-        let isPlaying = false;
-        let lastRawTrack = "";
-        let wakeLock = null;
+    <!-- Elemento de Audio -->
+    <audio id="stream-audio" src="https://canalretrohits.online:8443/stream" preload="auto"></audio>
 
-        // Gestión del Wake Lock (evita que se apague la pantalla)
-        async function requestWakeLock() {
-            try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                    wakeLock.addEventListener('release', () => { wakeLock = null; });
-                }
-            } catch (err) {
-                console.error("Wake Lock error:", err);
+    <!-- Botón de Play -->
+    <button id="play-btn" onclick="startStream()">ESCUCHAR EN DIRECTO</button>
+</div>
+
+<script>
+    const audio = document.getElementById('stream-audio');
+    const playBtn = document.getElementById('play-btn');
+    const nowPlaying = document.getElementById('now-playing');
+
+    // Variable para el bloqueo de pantalla (Wake Lock)
+    let wakeLock = null;
+
+    async function requestWakeLock() {
+        try {
+            if ('wakeLock' in navigator) {
+                wakeLock = await navigator.wakeLock.request('screen');
+                wakeLock.addEventListener('release', () => {
+                    wakeLock = null;
+                });
             }
+        } catch (err) {
+            console.error(`Error Wake Lock: ${err.name}, ${err.message}`);
         }
+    }
 
-        function releaseWakeLock() {
+    // Volver a pedir el Wake Lock si el usuario regresa a la pestaña
+    document.addEventListener('visibilitychange', async () => {
+        if (wakeLock === null && document.visibilityState === 'visible' && !audio.paused) {
+            await requestWakeLock();
+        }
+    });
+
+    // Precarga el flujo en segundo plano
+    window.addEventListener('DOMContentLoaded', () => {
+        audio.load();
+    });
+
+    function startStream() {
+        if (audio.paused) {
+            audio.play().then(() => {
+                playBtn.innerText = "EN DIRECTO (REPRODUCIENDO)";
+                playBtn.style.background = "#cc0000";
+                requestWakeLock(); // Activa el mantenimiento de pantalla encendida
+            }).catch(error => {
+                console.log("Error al reproducir:", error);
+            });
+        } else {
+            audio.pause();
+            playBtn.innerText = "ESCUCHAR EN DIRECTO";
+            playBtn.style.background = "#ff3333";
             if (wakeLock !== null) {
                 wakeLock.release();
                 wakeLock = null;
             }
         }
+    }
 
-        // MediaSession para controles en pantalla de bloqueo y estabilidad
-        function updateMediaSession(title, artist, artUrl) {
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: title,
-                    artist: artist,
-                    album: "Radio Porcuna 106.9 FM",
-                    artwork: [{ src: artUrl, sizes: '512x512', type: 'image/jpeg' }]
-                });
-                navigator.mediaSession.setActionHandler('play', () => { startPlayback(); });
-                navigator.mediaSession.setActionHandler('pause', () => { stopPlayback(); });
-            }
-        }
-
-        function startPlayback() {
-            audio.src = STREAM_URL + "?nocache=" + Date.now();
-            audio.play().then(() => {
-                playBtn.innerText = "PAUSAR EMISIÓN";
-                isPlaying = true;
-                requestWakeLock();
-                updateMediaSession(songTitle.innerText, songArtist.innerText, artwork.src);
-            }).catch(err => {
-                alert("No se pudo conectar a la emisión.");
-            });
-        }
-
-        function stopPlayback() {
-            audio.pause();
-            audio.src = "";
-            playBtn.innerText = "ESCUCHAR EN DIRECTO";
-            isPlaying = false;
-            releaseWakeLock();
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.playbackState = "paused";
-            }
-        }
-
-        playBtn.addEventListener('click', () => {
-            if (!isPlaying) {
-                startPlayback();
-            } else {
-                stopPlayback();
-            }
-        });
-
-        // Buscar carátulas en iTunes
-        async function searchArtwork(artist, title) {
-            let query = `${artist} ${title}`.trim();
-            try {
-                let res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=1`);
-                let data = await res.json();
-                let artUrl = DEFAULT_LOGO;
-                if (data.results && data.results.length > 0) {
-                    artUrl = data.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
-                }
-                artwork.src = artUrl;
-                updateMediaSession(songTitle.innerText, songArtist.innerText, artUrl);
-            } catch (e) {
-                artwork.src = DEFAULT_LOGO;
-            }
-        }
-
-        // Procesar metadatos
-        function processTrackInfo(rawTrack) {
-            if (!rawTrack || !rawTrack.trim() || rawTrack.includes("Radio Porcuna")) {
-                songTitle.innerText = "Radio Porcuna - En directo";
-                songArtist.innerText = "106.9 FM";
-                artwork.src = DEFAULT_LOGO;
-                updateMediaSession("Radio Porcuna - En directo", "106.9 FM", DEFAULT_LOGO);
-                return;
-            }
-
-            let parts = rawTrack.split('-');
-            let artist = "";
-            let title = "";
-
-            if (parts.length >= 2) {
-                artist = parts[0].trim();
-                title = parts.slice(1).join('-').trim();
-            } else {
-                artist = "Radio Porcuna 106.9 FM";
-                title = rawTrack.trim();
-            }
-
-            songTitle.innerText = title;
-            songArtist.innerText = artist;
-            searchArtwork(artist, title);
-        }
-
-        function extractTrackFromJSON(data) {
-            if (!data || !data.icestats) return "";
-            let source = data.icestats.source;
-            if (Array.isArray(source)) {
-                source = source[0];
-            }
-            if (source) {
-                return source.title || source.song || source.yp_currently_playing || "";
-            }
-            return "";
-        }
-
-        // Sistema robusto de lectura con múltiples pasarelas proxy para evitar bloqueos CORS
-        async function fetchMetadata() {
-            let track = "";
-            
-            // Intento 1: Proxy AllOrigins
-            try {
-                let res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(METADATA_URL));
-                let data = await res.json();
-                track = extractTrackFromJSON(data);
-            } catch (e1) {
-                // Intento 2: Proxy CorsProxy.io
-                try {
-                    let res = await fetch("https://corsproxy.io/?" + encodeURIComponent(METADATA_URL));
-                    let data = await res.json();
-                    track = extractTrackFromJSON(data);
-                } catch (e2) {
-                    // Intento 3: Conexión directa
-                    try {
-                        let res = await fetch(METADATA_URL);
-                        let data = await res.json();
-                        track = extractTrackFromJSON(data);
-                    } catch (e3) {
-                        // Silencioso
+    function updateMetadata() {
+        // Añadido '&_t=' para evitar la caché y forzar datos frescos de Frankfurt al instante
+        const timestamp = new Date().getTime();
+        const targetUrl = 'https://canalretrohits.online:8443/status-json.xsl?_t=' + timestamp;
+        
+        fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl))
+            .then(response => {
+                if (response.ok) return response.json();
+                throw new Error('Network response was not ok');
+            })
+            .then(data => {
+                const parsedData = JSON.parse(data.contents);
+                let source = parsedData.icestats.source;
+                if (source) {
+                    if (Array.isArray(source)) {
+                        source = source.find(s => s.listenurl && s.listenurl.includes('stream')) || source[0];
+                    }
+                    if (source && source.title) {
+                        let rawTitle = source.title;
+                        let cleanTitle = rawTitle.replace(/^\d+\.\s*/, ''); // Limpiar numeración de ZaraRadio si la hubiera
+                        nowPlaying.innerText = cleanTitle;
                     }
                 }
-            }
+            })
+            .catch(err => {});
+    }
 
-            if (track && track !== lastRawTrack) {
-                lastRawTrack = track;
-                processTrackInfo(track);
-            }
-        }
+    setInterval(updateMetadata, 2000);
+    updateMetadata();
+</script>
 
-        // Mantener activo al cambiar de pestaña
-        document.addEventListener('visibilitychange', async () => {
-            if (document.visibilityState === 'visible' && isPlaying) {
-                if (wakeLock === null) await requestWakeLock();
-                fetchMetadata();
-            }
-        });
-
-        // Actualizar metadatos cada 2 segundos
-        setInterval(fetchMetadata, 2000);
-        fetchMetadata();
-    </script>
 </body>
 </html>
