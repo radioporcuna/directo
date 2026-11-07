@@ -39,19 +39,19 @@
         border-radius: 0;
     }
 
-    /* Contenedor interno para mantener la elegancia en pantallas grandes o tablets */
+    /* Contenedor interno sin borde rojo (todo negro) */
     @media (min-width: 600px) {
         .radio-card {
             max-width: 450px;
             height: auto;
             border-radius: 16px;
-            border: 2px solid #ff3333;
+            border: none; /* Sin borde rojo */
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
             padding: 30px;
         }
     }
 
-    /* Logotipo oficial de Radio Porcuna */
+    /* Logotipo / Portada del disco */
     .logo-container {
         position: relative;
         width: 140px;
@@ -138,9 +138,9 @@
 <body>
 
 <div class="radio-card">
-    <!-- Logotipo oficial -->
+    <!-- Logotipo / Portada del disco -->
     <div class="logo-container">
-        <img src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg?t=156985" alt="Radio Porcuna">
+        <img id="station-logo" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg?t=156985" alt="Radio Porcuna">
     </div>
 
     <!-- Títulos -->
@@ -164,31 +164,26 @@
     const audio = document.getElementById('stream-audio');
     const playBtn = document.getElementById('play-btn');
     const nowPlaying = document.getElementById('now-playing');
+    const stationLogo = document.getElementById('station-logo');
 
-    // Variable para el bloqueo de pantalla (Wake Lock)
+    let currentTrackText = "";
     let wakeLock = null;
 
     async function requestWakeLock() {
         try {
             if ('wakeLock' in navigator) {
                 wakeLock = await navigator.wakeLock.request('screen');
-                wakeLock.addEventListener('release', () => {
-                    wakeLock = null;
-                });
+                wakeLock.addEventListener('release', () => { wakeLock = null; });
             }
-        } catch (err) {
-            console.error(`Error Wake Lock: ${err.name}, ${err.message}`);
-        }
+        } catch (err) {}
     }
 
-    // Volver a pedir el Wake Lock si el usuario regresa a la pestaña
     document.addEventListener('visibilitychange', async () => {
         if (wakeLock === null && document.visibilityState === 'visible' && !audio.paused) {
             await requestWakeLock();
         }
     });
 
-    // Precarga el flujo en segundo plano
     window.addEventListener('DOMContentLoaded', () => {
         audio.load();
     });
@@ -198,10 +193,8 @@
             audio.play().then(() => {
                 playBtn.innerText = "EN DIRECTO (REPRODUCIENDO)";
                 playBtn.style.background = "#cc0000";
-                requestWakeLock(); // Activa el mantenimiento de pantalla encendida
-            }).catch(error => {
-                console.log("Error al reproducir:", error);
-            });
+                requestWakeLock();
+            }).catch(error => {});
         } else {
             audio.pause();
             playBtn.innerText = "ESCUCHAR EN DIRECTO";
@@ -213,8 +206,33 @@
         }
     }
 
+    // Función para buscar la carátula en iTunes según el artista y canción
+    function fetchAlbumArt(trackName) {
+        if (!trackName || trackName === currentTrackText) return;
+        currentTrackText = trackName;
+
+        const itunesUrl = 'https://itunes.apple.com/search?term=' + encodeURIComponent(trackName) + '&limit=1&media=music';
+        
+        fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(itunesUrl))
+            .then(res => res.json())
+            .then(data => {
+                const parsed = JSON.parse(data.contents);
+                if (parsed.results && parsed.results.length > 0) {
+                    let artworkUrl = parsed.results[0].artworkUrl100;
+                    // Cambiar resolución a alta calidad (600x600)
+                    if (artworkUrl) {
+                        artworkUrl = artworkUrl.replace('100x100bb.jpg', '600x600bb.jpg');
+                        stationLogo.src = artworkUrl;
+                    }
+                } else {
+                    // Si no encuentra carátula, deja el logo oficial de la emisora
+                    stationLogo.src = "https://cdn-profiles.tunein.com/s225357/images/logog.jpg?t=156985";
+                }
+            })
+            .catch(() => {});
+    }
+
     function updateMetadata() {
-        // Añadido '&_t=' para evitar la caché y forzar datos frescos de Frankfurt al instante
         const timestamp = new Date().getTime();
         const targetUrl = 'https://canalretrohits.online:8443/status-json.xsl?_t=' + timestamp;
         
@@ -232,8 +250,11 @@
                     }
                     if (source && source.title) {
                         let rawTitle = source.title;
-                        let cleanTitle = rawTitle.replace(/^\d+\.\s*/, ''); // Limpiar numeración de ZaraRadio si la hubiera
+                        let cleanTitle = rawTitle.replace(/^\d+\.\s*/, ''); // Limpiar numeración de ZaraRadio
                         nowPlaying.innerText = cleanTitle;
+                        
+                        // Actualizar carátula buscando en iTunes
+                        fetchAlbumArt(cleanTitle);
                     }
                 }
             })
