@@ -161,14 +161,12 @@
         let lastRawTrack = "";
         let wakeLock = null;
 
-        // Gestión del Wake Lock para evitar que se apague la pantalla
+        // Gestión del Wake Lock (evita que se apague la pantalla al reproducir)
         async function requestWakeLock() {
             try {
                 if ('wakeLock' in navigator) {
                     wakeLock = await navigator.wakeLock.request('screen');
-                    wakeLock.addEventListener('release', () => {
-                        wakeLock = null;
-                    });
+                    wakeLock.addEventListener('release', () => { wakeLock = null; });
                 }
             } catch (err) {
                 console.error("Wake Lock error:", err);
@@ -182,18 +180,15 @@
             }
         }
 
-        // Configurar MediaSession para que el sistema mantenga vivo el reproductor y metadatos
+        // MediaSession para controles nativos y estabilidad en segundo plano
         function updateMediaSession(title, artist, artUrl) {
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.metadata = new MediaMetadata({
                     title: title,
                     artist: artist,
                     album: "Radio Porcuna 106.9 FM",
-                    artwork: [
-                        { src: artUrl, sizes: '512x512', type: 'image/jpeg' }
-                    ]
+                    artwork: [{ src: artUrl, sizes: '512x512', type: 'image/jpeg' }]
                 });
-
                 navigator.mediaSession.setActionHandler('play', () => { startPlayback(); });
                 navigator.mediaSession.setActionHandler('pause', () => { stopPlayback(); });
             }
@@ -286,10 +281,11 @@
             return "";
         }
 
-        // Consulta de metadatos con sistema de respaldo por Proxy
+        // Consulta de metadatos usando Proxy para evitar bloqueos CORS del navegador
         async function fetchMetadata() {
             try {
-                let response = await fetch(METADATA_URL, { cache: 'no-store' });
+                let proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(METADATA_URL);
+                let response = await fetch(proxyUrl);
                 let data = await response.json();
                 let track = extractTrackFromJSON(data);
                 if (track && track !== lastRawTrack) {
@@ -297,9 +293,10 @@
                     processTrackInfo(track);
                 }
             } catch (err) {
+                // Segundo respaldo de proxy por si falla el primero
                 try {
-                    let proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(METADATA_URL);
-                    let response = await fetch(proxyUrl);
+                    let proxyUrlAlt = "https://corsproxy.io/?" + encodeURIComponent(METADATA_URL);
+                    let response = await fetch(proxyUrlAlt);
                     let data = await response.json();
                     let track = extractTrackFromJSON(data);
                     if (track && track !== lastRawTrack) {
@@ -307,12 +304,11 @@
                         processTrackInfo(track);
                     }
                 } catch (err2) {
-                    // Error silencioso si falla la red temporalmente
+                    // Silencioso si hay problemas de red puntuales
                 }
             }
         }
 
-        // Mantener activo si se recupera la visibilidad de la pestaña
         document.addEventListener('visibilitychange', async () => {
             if (document.visibilityState === 'visible' && isPlaying) {
                 if (wakeLock === null) await requestWakeLock();
