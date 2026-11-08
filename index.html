@@ -160,6 +160,52 @@
         const audio = new Audio();
         let isPlaying = false;
         let lastRawTrack = "";
+            const audio = new Audio();
+    let isPlaying = false;
+    let lastRawTrack = "";
+
+    // --- BLOQUE PARA QUE NO SE APAGUE LA PANTALLA ---
+    let wakeLock = null;
+
+    async function requestWakeLock() {
+        try {
+            if ('wakeLock' in navigator) {
+                wakeLock = await navigator.wakeLock.request('screen');
+                wakeLock.addEventListener('release', () => { wakeLock = null; });
+            }
+        } catch (err) {}
+    }
+
+    document.addEventListener('visibilitychange', async () => {
+        if (wakeLock === null && document.visibilityState === 'visible' && isPlaying) {
+            await requestWakeLock();
+        }
+    });
+    // ------------------------------------------------
+
+    playBtn.addEventListener('click', () => {
+        if (!isPlaying) {
+            audio.src = STREAM_URL + "?nocache=" + Date.now();
+            audio.play().then(() => {
+                playBtn.innerText = "PAUSAR EMISIÓN";
+                isPlaying = true;
+                requestWakeLock(); // <--- Activa el bloqueo aquí al pulsar Play
+            }).catch(e => {
+                alert("No se pudo conectar a la emisión.");
+            });
+        } else {
+            audio.pause();
+            audio.src = "";
+            playBtn.innerText = "ESCUCHAR EN DIRECTO";
+            isPlaying = false;
+            
+            // --- Libera el bloqueo aquí al pulsar Pausa ---
+            if (wakeLock !== null) {
+                wakeLock.release();
+                wakeLock = null;
+            }
+        }
+    });
 
         playBtn.addEventListener('click', () => {
             if (!isPlaying) {
