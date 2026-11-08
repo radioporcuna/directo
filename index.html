@@ -189,6 +189,25 @@
                 requestWakeLock(); // <--- Activa el bloqueo aquí al pulsar Play
             }).catch(e => {
 
+            playBtn.addEventListener('click', () => {
+    if (!isPlaying) {
+        audio.src = STREAM_URL + "?nocache=" + Date.now();
+        audio.play().then(() => {
+            playBtn.innerText = "PAUSAR EMISIÓN";
+            isPlaying = true;
+            requestWakeLock();
+        }).catch(e => {
+            // Se elimina el alert para que no moleste al usuario
+            console.log("Reintentando conexión...");
+        });
+    } else {
+        audio.pause();
+        audio.src = "";
+        playBtn.innerText = "ESCUCHAR EN DIRECTO";
+        isPlaying = false;
+    }
+});
+
                 
             audio.pause();
             audio.src = "";
