@@ -196,31 +196,7 @@
         playBtn.innerText = "ESCUCHAR EN DIRECTO";
         isPlaying = false;
     }
-});
-        
-     playBtn.addEventListener('click', () => {
-    if (!isPlaying) {
-        audio.src = STREAM_URL + "?nocache=" + Date.now();
-        audio.play().then(() => {
-            playBtn.innerText = "PAUSAR EMISIÓN";
-            isPlaying = true;
-            requestWakeLock();
-        }).catch(e => {
-            console.log("Reintentando conexión...");
-        });
-    } else {
-        audio.pause();
-        audio.src = "";
-        playBtn.innerText = "ESCUCHAR EN DIRECTO";
-        isPlaying = false;
-        
-        // Libera el bloqueo de pantalla cuando se pausa la radio
-        if (wakeLock !== null) {
-            wakeLock.release();
-            wakeLock = null;
-        }
-    }
-});                                                                         
+});                                                                        
 
         async function searchArtwork(artist, title) {
             let query = `${artist} ${title}`.trim();
