@@ -188,9 +188,8 @@
                 isPlaying = true;
                 requestWakeLock(); // <--- Activa el bloqueo aquí al pulsar Play
             }).catch(e => {
-                alert("No se pudo conectar a la emisión.");
-            });
-        } else {
+
+                
             audio.pause();
             audio.src = "";
             playBtn.innerText = "ESCUCHAR EN DIRECTO";
