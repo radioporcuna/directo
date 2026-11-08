@@ -246,7 +246,7 @@
 
             // Intento 1: Directo al Icecast
             try {
-                let response = await fetch(METADATA_URL, { cache: "no-store" });
+                let response = await fetch(METADATA_URL + "?nocache=" + Date.now());
                 let data = await response.json();
                 track = extractTrackFromJSON(data);
             } catch (err) {
