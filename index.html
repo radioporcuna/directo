@@ -198,19 +198,7 @@
     }
 });
         
-                
-            audio.pause();
-            audio.src = "";
-            playBtn.innerText = "ESCUCHAR EN DIRECTO";
-            isPlaying = false;
-            
-            // --- Libera el bloqueo aquí al pulsar Pausa ---
-            if (wakeLock !== null) {
-                wakeLock.release();
-                wakeLock = null;
-            }
-        }
-    });
+        
 
         playBtn.addEventListener('click', () => {
             if (!isPlaying) {
