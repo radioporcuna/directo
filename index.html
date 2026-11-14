@@ -34,13 +34,13 @@
             text-align: center;
         }
 
-        /* Carátula / Logo circular principal pequeño */
+        /* Carátula / Logo circular principal mucho más pequeño y fino */
         .artwork-container {
-            width: 90px;
-            height: 90px;
+            width: 65px;
+            height: 65px;
             border-radius: 50%;
-            margin-bottom: 10px;
-            box-shadow: 0 0 12px rgba(255, 30, 60, 0.4);
+            margin-bottom: 8px;
+            box-shadow: 0 0 10px rgba(255, 30, 60, 0.4);
             overflow: hidden;
             border: 2px solid #ff2e4d;
             background-color: #000000;
@@ -59,16 +59,16 @@
         }
 
         h1 {
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             font-weight: 700;
             margin-bottom: 2px;
             letter-spacing: -0.5px;
         }
 
         .subtitle {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #ff7b89;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             font-weight: 400;
         }
 
@@ -79,13 +79,13 @@
             border-radius: 10px;
             padding: 10px 14px;
             text-align: left;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             border-left: 3px solid #ff2e4d;
             box-shadow: 0 3px 12px rgba(0,0,0,0.3);
         }
 
         .now-playing-label {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             font-weight: 700;
             color: #ff2e4d;
             letter-spacing: 0.5px;
@@ -94,7 +94,7 @@
         }
 
         .now-playing-title {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             color: #ffffff;
             white-space: nowrap;
@@ -103,7 +103,7 @@
         }
 
         .now-playing-artist {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: #a8a8a8;
             margin-top: 1px;
             white-space: nowrap;
@@ -118,13 +118,13 @@
             color: #ffffff;
             border: none;
             border-radius: 25px;
-            padding: 12px 18px;
-            font-size: 0.9rem;
+            padding: 10px 16px;
+            font-size: 0.85rem;
             font-weight: 800;
             letter-spacing: 0.5px;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(255, 30, 60, 0.4);
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .play-btn:active {
@@ -136,11 +136,11 @@
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         .historial-titulo-seccion {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             font-weight: 700;
             color: #aaa;
             text-transform: uppercase;
@@ -152,21 +152,21 @@
         .track-box-historial {
             width: 100%;
             background-color: #1a1a1a;
-            border-radius: 10px;
-            padding: 6px 10px;
+            border-radius: 8px;
+            padding: 5px 8px;
             display: flex;
             align-items: center;
             gap: 8px;
             border-left: 3px solid #ff2e4d;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-left-width: 3px;
         }
 
         .historial-thumb {
-            width: 30px;
-            height: 30px;
-            border-radius: 5px;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
             object-fit: cover;
             background-color: #000;
             flex-shrink: 0;
@@ -181,7 +181,7 @@
         }
 
         .track-label-historial {
-            font-size: 0.5rem;
+            font-size: 0.45rem;
             font-weight: 700;
             color: #ff2e4d;
             letter-spacing: 0.5px;
@@ -189,7 +189,7 @@
         }
 
         .track-title-historial {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: 600;
             color: #ffffff;
             white-space: nowrap;
@@ -198,7 +198,7 @@
         }
 
         .track-artist-historial {
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             color: #a8a8a8;
             white-space: nowrap;
             overflow: hidden;
@@ -380,14 +380,11 @@
             songTitle.innerText = title;
             songArtist.innerText = artist;
 
-            // Esperar explícitamente a que busque y obtenga la carátula de ESTA canción concreta
             let currentCover = await fetchArtworkUrl(artist, title);
             artwork.src = currentCover;
 
-            // Obtener historial actual
-            let historial = JSON.parse(localStorage.getItem("radio_historial_porcuna_v6")) || [];
+            let historial = JSON.parse(localStorage.getItem("radio_historial_porcuna_v7")) || [];
             
-            // Comprobamos si es una canción distinta a la que está en la cima del historial
             if (historial.length === 0 || historial[0].raw !== rawTrack) {
                 historial.unshift({
                     raw: rawTrack,
@@ -396,11 +393,10 @@
                     cover: currentCover
                 });
                 if (historial.length > 4) historial.pop();
-                localStorage.setItem("radio_historial_porcuna_v6", JSON.stringify(historial));
+                localStorage.setItem("radio_historial_porcuna_v7", JSON.stringify(historial));
             } else {
-                // Si por lo que sea ya estaba, nos aseguramos de actualizar su carátula por si acaso
                 historial[0].cover = currentCover;
-                localStorage.setItem("radio_historial_porcuna_v6", JSON.stringify(historial));
+                localStorage.setItem("radio_historial_porcuna_v7", JSON.stringify(historial));
             }
 
             actualizarPantallaHistorial(historial);
@@ -440,7 +436,7 @@
                 } catch (err2) {}
             }
 
-            let historialGuardado = JSON.parse(localStorage.getItem("radio_historial_porcuna_v6")) || [];
+            let historialGuardado = JSON.parse(localStorage.getItem("radio_historial_porcuna_v7")) || [];
             if (historialGuardado.length > 0) {
                 actualizarPantallaHistorial(historialGuardado);
             }
