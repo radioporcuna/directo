@@ -31,42 +31,62 @@
             align-items: center;
             gap: 25px;
             width: 100%;
-            max-width: 1050px;
+            max-width: 1100px;
             flex-wrap: wrap;
         }
 
-        /* Columnas laterales */
+        /* Columnas laterales de cajitas sueltas */
         .columna-lateral {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             width: 260px;
         }
 
-        /* Cada cajita de canción anterior con el estilo de "Sonando Ahora" */
+        /* Cada cajita de canción anterior individual */
         .track-box-historial {
             width: 100%;
             background-color: #1a1a1a;
             border-radius: 12px;
-            padding: 10px 14px;
-            text-align: left;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             border-left: 4px solid #ff2e4d;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-left-width: 4px;
         }
 
+        /* Miniatura pequeña para las cajitas */
+        .historial-thumb {
+            width: 38px;
+            height: 38px;
+            border-radius: 6px;
+            object-fit: cover;
+            background-color: #000;
+            flex-shrink: 0;
+        }
+
+        .historial-info {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            text-align: left;
+            width: 100%;
+        }
+
         .track-label-historial {
-            font-size: 0.65rem;
+            font-size: 0.55rem;
             font-weight: 700;
             color: #ff2e4d;
             letter-spacing: 1px;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
             text-transform: uppercase;
         }
 
         .track-title-historial {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-weight: 600;
             color: #ffffff;
             white-space: nowrap;
@@ -74,6 +94,15 @@
             text-overflow: ellipsis;
         }
 
+        .track-artist-historial {
+            font-size: 0.65rem;
+            color: #a8a8a8;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Contenedor central */
         .container {
             width: 100%;
             max-width: 340px;
@@ -83,7 +112,7 @@
             text-align: center;
         }
 
-        /* Carátula / Logo circular */
+        /* Carátula / Logo circular principal (FORZADO A REDONDO PERFECTO) */
         .artwork-container {
             width: 170px;
             height: 170px;
@@ -96,6 +125,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
 
         .artwork {
@@ -103,6 +133,7 @@
             height: 100%;
             object-fit: cover;
             display: block;
+            border-radius: 50%;
         }
 
         h1 {
@@ -185,16 +216,24 @@
         <!-- COLUMNA IZQUIERDA (Anteriores 1 y 2) -->
         <div class="columna-lateral">
             <div class="track-box-historial">
-                <div class="track-label-historial">Anterior 1</div>
-                <div id="hist-1" class="track-title-historial">Esperando...</div>
+                <img id="thumb-1" class="historial-thumb" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Portada">
+                <div class="historial-info">
+                    <div class="track-label-historial">Anterior 1</div>
+                    <div id="hist-title-1" class="track-title-historial">Cargando...</div>
+                    <div id="hist-artist-1" class="track-artist-historial">-</div>
+                </div>
             </div>
             <div class="track-box-historial">
-                <div class="track-label-historial">Anterior 2</div>
-                <div id="hist-2" class="track-title-historial">Esperando...</div>
+                <img id="thumb-2" class="historial-thumb" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Portada">
+                <div class="historial-info">
+                    <div class="track-label-historial">Anterior 2</div>
+                    <div id="hist-title-2" class="track-title-historial">Cargando...</div>
+                    <div id="hist-artist-2" class="track-artist-historial">-</div>
+                </div>
             </div>
         </div>
 
-        <!-- CONTENEDOR CENTRAL (Reproductor principal) -->
+        <!-- CONTENEDOR CENTRAL (Reproductor principal redondo) -->
         <div class="container">
             <div id="artwork-container">
                 <img id="artwork" class="artwork" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Logo">
@@ -214,12 +253,20 @@
         <!-- COLUMNA DERECHA (Anteriores 3 y 4) -->
         <div class="columna-lateral">
             <div class="track-box-historial">
-                <div class="track-label-historial">Anterior 3</div>
-                <div id="hist-3" class="track-title-historial">Esperando...</div>
+                <img id="thumb-3" class="historial-thumb" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Portada">
+                <div class="historial-info">
+                    <div class="track-label-historial">Anterior 3</div>
+                    <div id="hist-title-3" class="track-title-historial">Cargando...</div>
+                    <div id="hist-artist-3" class="track-artist-historial">-</div>
+                </div>
             </div>
             <div class="track-box-historial">
-                <div class="track-label-historial">Anterior 4</div>
-                <div id="hist-4" class="track-title-historial">Esperando...</div>
+                <img id="thumb-4" class="historial-thumb" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Portada">
+                <div class="historial-info">
+                    <div class="track-label-historial">Anterior 4</div>
+                    <div id="hist-title-4" class="track-title-historial">Cargando...</div>
+                    <div id="hist-artist-4" class="track-artist-historial">-</div>
+                </div>
             </div>
         </div>
 
@@ -296,31 +343,26 @@
             }
         });
 
-        async function searchArtwork(artist, title) {
+        async function fetchArtworkUrl(artist, title) {
             let cleanTitle = title.replace(/\([^)]*\)/g, '').trim();
             let query = `${artist} ${cleanTitle}`.trim();
             try {
                 let res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=1`);
                 let data = await res.json();
                 if (data.results && data.results.length > 0) {
-                    let track = data.results[0];
-                    artwork.src = track.artworkUrl100.replace('100x100bb', '600x600bb');
+                    return data.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
                 } else {
                     let resFallback = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&media=music&limit=1`);
                     let dataFallback = await resFallback.json();
                     if (dataFallback.results && dataFallback.results.length > 0) {
-                        let track = dataFallback.results[0];
-                        artwork.src = track.artworkUrl100.replace('100x100bb', '600x600bb');
-                    } else {
-                        artwork.src = DEFAULT_LOGO;
+                        return dataFallback.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
                     }
                 }
-            } catch (e) {
-                artwork.src = DEFAULT_LOGO;
-            }
+            } catch (e) {}
+            return DEFAULT_LOGO;
         }
 
-        function processTrackInfo(rawTrack) {
+        async function processTrackInfo(rawTrack) {
             if (!rawTrack || rawTrack.trim() === "" || rawTrack.includes("Radio Porcuna")) {
                 songTitle.innerText = "Radio Porcuna - En directo";
                 songArtist.innerText = "106.9 FM";
@@ -342,26 +384,41 @@
 
             songTitle.innerText = title;
             songArtist.innerText = artist;
-            searchArtwork(artist, title);
 
-            // --- GESTIÓN DE LAS 4 ÚLTIMAS CANCIONES ---
-            let historial = JSON.parse(localStorage.getItem("radio_historial_porcuna_4box")) || [];
-            if (historial.length === 0 || historial[0] !== rawTrack) {
-                historial.unshift(rawTrack);
+            let currentCover = await fetchArtworkUrl(artist, title);
+            artwork.src = currentCover;
+
+            let historial = JSON.parse(localStorage.getItem("radio_historial_porcuna_v2")) || [];
+            
+            // Evitar duplicados consecutivos
+            if (historial.length === 0 || historial[0].raw !== rawTrack) {
+                historial.unshift({
+                    raw: rawTrack,
+                    title: title,
+                    artist: artist,
+                    cover: currentCover
+                });
                 if (historial.length > 4) historial.pop();
-                localStorage.setItem("radio_historial_porcuna_4box", JSON.stringify(historial));
+                localStorage.setItem("radio_historial_porcuna_v2", JSON.stringify(historial));
             }
 
-            // Rellenar las 4 cajitas independientes
+            actualizarPantallaHistorial(historial);
+        }
+
+        function actualizarPantallaHistorial(historial) {
             for (let i = 0; i < 4; i++) {
-                let el = document.getElementById(`hist-${i+1}`);
-                if (el) {
-                    if (historial[i]) {
-                        el.textContent = historial[i];
-                        el.title = historial[i];
-                    } else {
-                        el.textContent = "Esperando...";
-                    }
+                let titleEl = document.getElementById(`hist-title-${i+1}`);
+                let artistEl = document.getElementById(`hist-artist-${i+1}`);
+                let thumbEl = document.getElementById(`thumb-${i+1}`);
+                
+                if (historial[i]) {
+                    if(titleEl) { titleEl.textContent = historial[i].title; titleEl.title = historial[i].title; }
+                    if(artistEl) { artistEl.textContent = historial[i].artist; artistEl.title = historial[i].artist; }
+                    if(thumbEl) { thumbEl.src = historial[i].cover; }
+                } else {
+                    if(titleEl) titleEl.textContent = "En emisión...";
+                    if(artistEl) artistEl.textContent = "Radio Porcuna";
+                    if(thumbEl) thumbEl.src = DEFAULT_LOGO;
                 }
             }
         }
@@ -380,6 +437,12 @@
                     let parsedData = JSON.parse(data.contents);
                     track = extractTrackFromJSON(parsedData);
                 } catch (err2) {}
+            }
+
+            // Si hay historial guardado en la memoria del navegador, lo cargamos al instante para que no salga "Esperando"
+            let historialGuardado = JSON.parse(localStorage.getItem("radio_historial_porcuna_v2")) || [];
+            if (historialGuardado.length > 0) {
+                actualizarPantallaHistorial(historialGuardado);
             }
 
             if (track && track !== lastRawTrack) {
