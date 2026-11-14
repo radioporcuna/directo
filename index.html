@@ -34,13 +34,13 @@
             text-align: center;
         }
 
-        /* Carátula / Logo circular pequeño (como al principio) */
+        /* Carátula / Logo circular principal pequeño */
         .artwork-container {
-            width: 120px;
-            height: 120px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
-            margin-bottom: 12px;
-            box-shadow: 0 0 15px rgba(255, 30, 60, 0.5);
+            margin-bottom: 10px;
+            box-shadow: 0 0 12px rgba(255, 30, 60, 0.4);
             overflow: hidden;
             border: 2px solid #ff2e4d;
             background-color: #000000;
@@ -59,16 +59,16 @@
         }
 
         h1 {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 700;
             margin-bottom: 2px;
             letter-spacing: -0.5px;
         }
 
         .subtitle {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #ff7b89;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             font-weight: 400;
         }
 
@@ -79,7 +79,7 @@
             border-radius: 10px;
             padding: 10px 14px;
             text-align: left;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             border-left: 3px solid #ff2e4d;
             box-shadow: 0 3px 12px rgba(0,0,0,0.3);
         }
@@ -124,7 +124,7 @@
             letter-spacing: 0.5px;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(255, 30, 60, 0.4);
-            margin-bottom: 18px;
+            margin-bottom: 15px;
         }
 
         .play-btn:active {
@@ -140,7 +140,7 @@
         }
 
         .historial-titulo-seccion {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: 700;
             color: #aaa;
             text-transform: uppercase;
@@ -380,11 +380,14 @@
             songTitle.innerText = title;
             songArtist.innerText = artist;
 
+            // Esperar explícitamente a que busque y obtenga la carátula de ESTA canción concreta
             let currentCover = await fetchArtworkUrl(artist, title);
             artwork.src = currentCover;
 
-            let historial = JSON.parse(localStorage.getItem("radio_historial_porcuna_v4")) || [];
+            // Obtener historial actual
+            let historial = JSON.parse(localStorage.getItem("radio_historial_porcuna_v6")) || [];
             
+            // Comprobamos si es una canción distinta a la que está en la cima del historial
             if (historial.length === 0 || historial[0].raw !== rawTrack) {
                 historial.unshift({
                     raw: rawTrack,
@@ -393,7 +396,11 @@
                     cover: currentCover
                 });
                 if (historial.length > 4) historial.pop();
-                localStorage.setItem("radio_historial_porcuna_v4", JSON.stringify(historial));
+                localStorage.setItem("radio_historial_porcuna_v6", JSON.stringify(historial));
+            } else {
+                // Si por lo que sea ya estaba, nos aseguramos de actualizar su carátula por si acaso
+                historial[0].cover = currentCover;
+                localStorage.setItem("radio_historial_porcuna_v6", JSON.stringify(historial));
             }
 
             actualizarPantallaHistorial(historial);
@@ -433,7 +440,7 @@
                 } catch (err2) {}
             }
 
-            let historialGuardado = JSON.parse(localStorage.getItem("radio_historial_porcuna_v4")) || [];
+            let historialGuardado = JSON.parse(localStorage.getItem("radio_historial_porcuna_v6")) || [];
             if (historialGuardado.length > 0) {
                 actualizarPantallaHistorial(historialGuardado);
             }
