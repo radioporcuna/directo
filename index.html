@@ -34,11 +34,11 @@
             text-align: center;
         }
 
-        /* Carátula / Logo circular principal mucho más pequeño y fino */
+        /* Carátula / Logo circular principal FORZADO A SER PEQUEÑO */
         .artwork-container {
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
+            width: 70px !important;
+            height: 70px !important;
+            border-radius: 50% !important;
             margin-bottom: 8px;
             box-shadow: 0 0 10px rgba(255, 30, 60, 0.4);
             overflow: hidden;
@@ -210,7 +210,7 @@
 
     <!-- REPRODUCTOR CENTRAL COMPACTO -->
     <div class="container">
-        <div id="artwork-container">
+        <div id="artwork-container" style="width: 70px; height: 70px;">
             <img id="artwork" class="artwork" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Logo">
         </div>
         <h1>Radio Porcuna</h1>
@@ -338,26 +338,29 @@
             }
         });
 
-        async function fetchArtworkUrl(artist, title) {
+        function searchArtwork(artist, title, callback) {
             let cleanTitle = title.replace(/\([^)]*\)/g, '').trim();
             let query = `${artist} ${cleanTitle}`.trim();
-            try {
-                let res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=1`);
-                let data = await res.json();
-                if (data.results && data.results.length > 0) {
-                    return data.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
-                } else {
-                    let resFallback = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&media=music&limit=1`);
-                    let dataFallback = await resFallback.json();
-                    if (dataFallback.results && dataFallback.results.length > 0) {
-                        return dataFallback.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
+            fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=1`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.results && data.results.length > 0) {
+                        callback(data.results[0].artworkUrl100.replace('100x100bb', '600x600bb'));
+                    } else {
+                        fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&media=music&limit=1`)
+                            .then(res => res.json())
+                            .then(dataFallback => {
+                                if (dataFallback.results && dataFallback.results.length > 0) {
+                                    callback(dataFallback.results[0].artworkUrl100.replace('100x100bb', '600x600bb'));
+                                } else {
+                                    callback(DEFAULT_LOGO);
+                                }
+                            }).catch(() => callback(DEFAULT_LOGO));
                     }
-                }
-            } catch (e) {}
-            return DEFAULT_LOGO;
+                }).catch(() => callback(DEFAULT_LOGO));
         }
 
-        async function processTrackInfo(rawTrack) {
+        function processTrackInfo(rawTrack) {
             if (!rawTrack || rawTrack.trim() === "" || rawTrack.includes("Radio Porcuna")) {
                 songTitle.innerText = "Radio Porcuna - En directo";
                 songArtist.innerText = "106.9 FM";
@@ -380,26 +383,28 @@
             songTitle.innerText = title;
             songArtist.innerText = artist;
 
-            let currentCover = await fetchArtworkUrl(artist, title);
-            artwork.src = currentCover;
+            // Búsqueda rápida e instantánea de la carátula
+            searchArtwork(artist, title, function(coverUrl) {
+                artwork.src = coverUrl;
 
-            let historial = JSON.parse(localStorage.getItem("radio_historial_porcuna_v7")) || [];
-            
-            if (historial.length === 0 || historial[0].raw !== rawTrack) {
-                historial.unshift({
-                    raw: rawTrack,
-                    title: title,
-                    artist: artist,
-                    cover: currentCover
-                });
-                if (historial.length > 4) historial.pop();
-                localStorage.setItem("radio_historial_porcuna_v7", JSON.stringify(historial));
-            } else {
-                historial[0].cover = currentCover;
-                localStorage.setItem("radio_historial_porcuna_v7", JSON.stringify(historial));
-            }
+                let historial = JSON.parse(localStorage.getItem("radio_historial_porcuna_v8")) || [];
+                
+                if (historial.length === 0 || historial[0].raw !== rawTrack) {
+                    historial.unshift({
+                        raw: rawTrack,
+                        title: title,
+                        artist: artist,
+                        cover: coverUrl
+                    });
+                    if (historial.length > 4) historial.pop();
+                    localStorage.setItem("radio_historial_porcuna_v8", JSON.stringify(historial));
+                } else {
+                    historial[0].cover = coverUrl;
+                    localStorage.setItem("radio_historial_porcuna_v8", JSON.stringify(historial));
+                }
 
-            actualizarPantallaHistorial(historial);
+                actualizarPantallaHistorial(historial);
+            });
         }
 
         function actualizarPantallaHistorial(historial) {
@@ -436,7 +441,7 @@
                 } catch (err2) {}
             }
 
-            let historialGuardado = JSON.parse(localStorage.getItem("radio_historial_porcuna_v7")) || [];
+            let historialGuardado = JSON.parse(localStorage.getItem("radio_historial_porcuna_v8")) || [];
             if (historialGuardado.length > 0) {
                 actualizarPantallaHistorial(historialGuardado);
             }
