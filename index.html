@@ -29,31 +29,49 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 20px;
+            gap: 25px;
             width: 100%;
-            max-width: 950px;
+            max-width: 1050px;
             flex-wrap: wrap;
         }
 
-        /* Cajas laterales de historial */
-        .caja-historial {
-            background: rgba(20, 20, 20, 0.85);
-            padding: 15px;
-            border-radius: 12px;
-            width: 240px;
-            color: #ccc;
-            font-size: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+        /* Columnas laterales */
+        .columna-lateral {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 260px;
         }
 
-        .caja-historial h4 {
-            font-weight: bold;
+        /* Cada cajita de canción anterior con el estilo de "Sonando Ahora" */
+        .track-box-historial {
+            width: 100%;
+            background-color: #1a1a1a;
+            border-radius: 12px;
+            padding: 10px 14px;
+            text-align: left;
+            border-left: 4px solid #ff2e4d;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-left-width: 4px;
+        }
+
+        .track-label-historial {
+            font-size: 0.65rem;
+            font-weight: 700;
             color: #ff2e4d;
-            margin-bottom: 8px;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
             text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 0.5px;
+        }
+
+        .track-title-historial {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .container {
@@ -164,10 +182,16 @@
 
     <div class="wrapper-principal">
 
-        <!-- COLUMNA IZQUIERDA: Canciones 1 y 2 -->
-        <div class="caja-historial">
-            <h4>Anteriores (1-2)</h4>
-            <div id="historial-izq">Esperando transmisión...</div>
+        <!-- COLUMNA IZQUIERDA (Anteriores 1 y 2) -->
+        <div class="columna-lateral">
+            <div class="track-box-historial">
+                <div class="track-label-historial">Anterior 1</div>
+                <div id="hist-1" class="track-title-historial">Esperando...</div>
+            </div>
+            <div class="track-box-historial">
+                <div class="track-label-historial">Anterior 2</div>
+                <div id="hist-2" class="track-title-historial">Esperando...</div>
+            </div>
         </div>
 
         <!-- CONTENEDOR CENTRAL (Reproductor principal) -->
@@ -187,10 +211,16 @@
             <button id="playBtn" class="play-btn">ESCUCHAR EN DIRECTO</button>
         </div>
 
-        <!-- COLUMNA DERECHA: Canciones 3 y 4 -->
-        <div class="caja-historial">
-            <h4>Anteriores (3-4)</h4>
-            <div id="historial-der">Esperando transmisión...</div>
+        <!-- COLUMNA DERECHA (Anteriores 3 y 4) -->
+        <div class="columna-lateral">
+            <div class="track-box-historial">
+                <div class="track-label-historial">Anterior 3</div>
+                <div id="hist-3" class="track-title-historial">Esperando...</div>
+            </div>
+            <div class="track-box-historial">
+                <div class="track-label-historial">Anterior 4</div>
+                <div id="hist-4" class="track-title-historial">Esperando...</div>
+            </div>
         </div>
 
     </div>
@@ -200,7 +230,6 @@
         const STREAM_URL = "https://canalretrohits.online:8443/stream";
         const METADATA_URL = "https://canalretrohits.online:8443/status-json.xsl";
 
-        // Frases rotativas del subtítulo
         const listaFrases = [
             "La radio de nuestra tierra",
             "Online las 24 horas sin parar",
@@ -228,7 +257,6 @@
         let isPlaying = false;
         let lastRawTrack = "";
 
-        // Bloqueo de pantalla para móvil
         let wakeLock = null;
         async function requestWakeLock() {
             try {
@@ -317,27 +345,25 @@
             searchArtwork(artist, title);
 
             // --- GESTIÓN DE LAS 4 ÚLTIMAS CANCIONES ---
-            let historial = JSON.parse(localStorage.getItem("radio_historial_porcuna_4")) || [];
+            let historial = JSON.parse(localStorage.getItem("radio_historial_porcuna_4box")) || [];
             if (historial.length === 0 || historial[0] !== rawTrack) {
                 historial.unshift(rawTrack);
                 if (historial.length > 4) historial.pop();
-                localStorage.setItem("radio_historial_porcuna_4", JSON.stringify(historial));
+                localStorage.setItem("radio_historial_porcuna_4box", JSON.stringify(historial));
             }
 
-            // Pintar en columnas laterales
-            let izqHtml = "";
-            let derHtml = "";
-            historial.forEach((track, index) => {
-                let linea = `<div style="margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${track}">• ${track}</div>`;
-                if (index < 2) {
-                    izqHtml += linea; // 1 y 2 a la izquierda
-                } else {
-                    derHtml += linea; // 3 y 4 a la derecha
+            // Rellenar las 4 cajitas independientes
+            for (let i = 0; i < 4; i++) {
+                let el = document.getElementById(`hist-${i+1}`);
+                if (el) {
+                    if (historial[i]) {
+                        el.textContent = historial[i];
+                        el.title = historial[i];
+                    } else {
+                        el.textContent = "Esperando...";
+                    }
                 }
-            });
-
-            document.getElementById("historial-izq").innerHTML = izqHtml || "Sin datos";
-            document.getElementById("historial-der").innerHTML = derHtml || "Sin datos";
+            }
         }
 
         async function fetchMetadata() {
