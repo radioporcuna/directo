@@ -129,15 +129,13 @@
     </style>
 </head>
 <body>
-
     <div class="container">
         <div class="artwork-container">
-            <img id="artwork" class="artwork" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Radio Porcuna">
+            <img id="artwork" class="artwork" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg">
         </div>
-
         <h1>Radio Porcuna</h1>
         <div id="subtitulo-rotativo" class="subtitle">La radio de nuestra tierra</div>
-
+        
         <div class="now-playing-box">
             <div class="now-playing-label">SONANDO AHORA:</div>
             <div id="songTitle" class="now-playing-title">Radio Porcuna - En directo</div>
@@ -147,88 +145,64 @@
         <button id="playBtn" class="play-btn">ESCUCHAR EN DIRECTO</button>
     </div>
 
-    
-        const DEFAULT_LOGO = "https://cdn-profiles.tunein.com/s225357/images/logog.jpg"; 
+    <script>
+        const DEFAULT_LOGO = "https://cdn-profiles.tunein.com/s225357/images/logog.jpg";
         const STREAM_URL = "https://canalretrohits.online:8443/stream";
         const METADATA_URL = "https://canalretrohits.online:8443/status-json.xsl";
+
         // Frases que irán rotando automáticamente
-  const listaFrases = [
-    "La radio de nuestra tierra",
-    "Sonando las 24 horas sin parar",
-    "El sonido de los 90s en directo",
-    "Conecta con los mejores recuerdos"
-  ];
+        const listaFrases = [
+            "La radio de nuestra tierra",
+            "Sonando las 24 horas sin parar",
+            "El sonido de los 90s en directo",
+            "Conecta con los mejores recuerdos"
+        ];
 
-  let indiceActual = 0;
-  const elementoSubtitulo = document.getElementById("subtitulo-rotativo");
+        let indiceActual = 0;
+        const elementoSubtitulo = document.getElementById("subtitulo-rotativo");
 
-  function cambiarTextoRotativo() {
-    indiceActual = (indiceActual + 1) % listaFrases.length;
-    if (elementoSubtitulo) {
-      elementoSubtitulo.textContent = listaFrases[indiceActual];
-    }
-   function cambiarTextoRotativo() {
-        indiceActual = (indiceActual + 1) % listaFrases.length;
-        if (elementoSubtitulo) {
-            elementoSubtitulo.textContent = listaFrases[indiceActual];
-        }
-    }
-
-    // Rota la frase cada 5 segundos (5000 milisegundos)
-    setInterval(cambiarTextoRotativo, 5000);
-
-    const playBtn = document.getElementById('playBtn');
-    const artwork = document.getElementById('artwork');
-    const songTitle = document.getElementById('songTitle');
-    const songArtist = document.getElementById('songArtist');
-
-    const audio = new Audio();
-    let isPlaying = false;
-    let lastRawTrack = "";
-
-    // --- BLOQUE PARA QUE NO SE APAGUE LA PANTALLA ---
-    let wakeLock = null;
-
-    async function requestWakeLock() {
-        try {
-            if ('wakeLock' in navigator) {
-                wakeLock = await navigator.wakeLock.request('screen');
-                wakeLock.addEventListener('release', () => { wakeLock = null; });
+        function cambiarTextoRotativo() {
+            indiceActual = (indiceActual + 1) % listaFrases.length;
+            if (elementoSubtitulo) {
+                elementoSubtitulo.textContent = listaFrases[indiceActual];
             }
-        } catch (err) {}
-    }
-
-    document.addEventListener('visibilitychange', async () => {
-        if (wakeLock === null && document.visibilityState === 'visible' && isPlaying) {
-            await requestWakeLock();
         }
-    });
-    // ------------------------------------------------
-        
-    playBtn.addEventListener('click', () => {
-    if (!isPlaying) {
-        audio.src = STREAM_URL + "?nocache=" + Date.now();
-        audio.play().then(() => {
-            playBtn.innerText = "PAUSAR EMISIÓN";
-            isPlaying = true;
-            requestWakeLock();
-        }).catch(e => {
-            console.log("Reintentando conexión...");
+
+        // Rota la frase cada 5 segundos (5000 milisegundos)
+        setInterval(cambiarTextoRotativo, 5000);
+
+        const playBtn = document.getElementById('playBtn');
+        const artwork = document.getElementById('artwork');
+        const songTitle = document.getElementById('songTitle');
+        const songArtist = document.getElementById('songArtist');
+
+        const audio = new Audio();
+        let isPlaying = false;
+        let lastRawTrack = "";
+
+        playBtn.addEventListener('click', () => {
+            if (!isPlaying) {
+                audio.src = STREAM_URL + "?nocache=" + Date.now();
+                audio.play().then(() => {
+                    playBtn.innerText = "PAUSAR EMISIÓN";
+                    isPlaying = true;
+                }).catch(err => {
+                    alert("No se pudo conectar a la emisión.");
+                });
+            } else {
+                audio.pause();
+                audio.src = "";
+                playBtn.innerText = "ESCUCHAR EN DIRECTO";
+                isPlaying = false;
+            }
         });
-    } else {
-        audio.pause();
-        audio.src = "";
-        playBtn.innerText = "ESCUCHAR EN DIRECTO";
-        isPlaying = false;
-    }
-});                                                                        
 
         async function searchArtwork(artist, title) {
             let query = `${artist} ${title}`.trim();
             try {
                 let res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=1`);
                 let data = await res.json();
-
+                
                 if (data.results && data.results.length > 0) {
                     let track = data.results[0];
                     artwork.src = track.artworkUrl100.replace('100x100bb', '600x600bb');
@@ -252,9 +226,9 @@
             let artist = "";
             let title = "";
 
-            if (parts.length >= 2) {
+            if (parts.length > 1) {
                 artist = parts[0].trim();
-                title = parts.slice(1).join('-').trim();
+                title = parts.slice(1).join(' - ').trim();
             } else {
                 artist = "Radio Porcuna 106.9 FM";
                 title = rawTrack.trim();
@@ -268,10 +242,10 @@
 
         async function fetchMetadata() {
             let track = "";
-
+            
             // Intento 1: Directo al Icecast
             try {
-                let response = await fetch(METADATA_URL + "?nocache=" + Date.now());
+                let response = await fetch(METADATA_URL, { cache: "no-store" });
                 let data = await response.json();
                 track = extractTrackFromJSON(data);
             } catch (err) {
@@ -284,7 +258,7 @@
                 } catch (err2) {
                     // Intento 3: Proxy Corsproxy
                     try {
-                        let proxyUrl2 = "https://corsproxy.io/?" + encodeURIComponent(METADATA_URL);
+                        let proxyUrl2 = "https://corsproxy.io/?"; + encodeURIComponent(METADATA_URL);
                         let response = await fetch(proxyUrl2);
                         let data = await response.json();
                         track = extractTrackFromJSON(data);
@@ -310,7 +284,7 @@
             return "";
         }
 
-        setInterval(fetchMetadata, 3000);
+        setInterval(fetchMetadata, 4000);
         fetchMetadata();
     </script>
 </body>
