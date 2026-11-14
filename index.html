@@ -180,25 +180,53 @@
         let isPlaying = false;
         let lastRawTrack = "";
 
-        playBtn.addEventListener('click', () => {
+        // --- BLOQUE PARA QUE NO SE APAGUE LA PANTALLA ---
+        let wakeLock = null;
+
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    wakeLock.addEventListener('release', () => {
+                        wakeLock = null;
+                    });
+                }
+            } catch (err) {}
+        }
+
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock === null && document.visibilityState === 'visible' && isPlaying) {
+                await requestWakeLock();
+            }
+        });
+
+        playBtn.addEventListener('click', async () => {
             if (!isPlaying) {
                 audio.src = STREAM_URL + "?nocache=" + Date.now();
-                audio.play().then(() => {
+                try {
+                    await audio.play();
                     playBtn.innerText = "PAUSAR EMISIÓN";
                     isPlaying = true;
-                }).catch(err => {
+                    await requestWakeLock();
+                } catch (err) {
                     alert("No se pudo conectar a la emisión.");
-                });
+                }
             } else {
                 audio.pause();
                 audio.src = "";
                 playBtn.innerText = "ESCUCHAR EN DIRECTO";
                 isPlaying = false;
+                if (wakeLock !== null) {
+                    await wakeLock.release();
+                    wakeLock = null;
+                }
             }
         });
 
         async function searchArtwork(artist, title) {
-            let query = `${artist} ${title}`.trim();
+            let cleanTitle = title.replace(/\([^)]*\)/g, '').trim(); 
+            let query = `${artist} ${cleanTitle}`.trim();
+            
             try {
                 let res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=1`);
                 let data = await res.json();
@@ -207,7 +235,14 @@
                     let track = data.results[0];
                     artwork.src = track.artworkUrl100.replace('100x100bb', '600x600bb');
                 } else {
-                    artwork.src = DEFAULT_LOGO;
+                    let resFallback = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(cleanTitle)}&media=music&limit=1`);
+                    let dataFallback = await resFallback.json();
+                    if (dataFallback.results && dataFallback.results.length > 0) {
+                        let track = dataFallback.results[0];
+                        artwork.src = track.artworkUrl100.replace('100x100bb', '600x600bb');
+                    } else {
+                        artwork.src = DEFAULT_LOGO;
+                    }
                 }
             } catch (e) {
                 artwork.src = DEFAULT_LOGO;
@@ -258,7 +293,7 @@
                 } catch (err2) {
                     // Intento 3: Proxy Corsproxy
                     try {
-                        let proxyUrl2 = "https://corsproxy.io/?"; + encodeURIComponent(METADATA_URL);
+                        let proxyUrl2 = "https://corsproxy.io/?" + encodeURIComponent(METADATA_URL);
                         let response = await fetch(proxyUrl2);
                         let data = await response.json();
                         track = extractTrackFromJSON(data);
