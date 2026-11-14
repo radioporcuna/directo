@@ -19,9 +19,41 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100dvh;
-            overflow: hidden;
+            min-height: 100vh;
+            overflow-x: hidden;
             padding: 15px;
+        }
+
+        /* Estructura general para alinear laterales y centro */
+        .wrapper-principal {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 950px;
+            flex-wrap: wrap;
+        }
+
+        /* Cajas laterales de historial */
+        .caja-historial {
+            background: rgba(20, 20, 20, 0.85);
+            padding: 15px;
+            border-radius: 12px;
+            width: 240px;
+            color: #ccc;
+            font-size: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .caja-historial h4 {
+            font-weight: bold;
+            color: #ff2e4d;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
         }
 
         .container {
@@ -101,7 +133,7 @@
 
         .now-playing-artist {
             font-size: 0.8rem;
-            color: #a0a0a0;
+            color: #a8a8a8;
             margin-top: 2px;
             white-space: nowrap;
             overflow: hidden;
@@ -129,20 +161,38 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="artwork-container">
-            <img id="artwork" class="artwork" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg">
-        </div>
-        <h1>Radio Porcuna</h1>
-        <div id="subtitulo-rotativo" class="subtitle">La radio de nuestra tierra</div>
-        
-        <div class="now-playing-box">
-            <div class="now-playing-label">SONANDO AHORA:</div>
-            <div id="songTitle" class="now-playing-title">Radio Porcuna - En directo</div>
-            <div id="songArtist" class="now-playing-artist">106.9 FM</div>
+
+    <div class="wrapper-principal">
+
+        <!-- COLUMNA IZQUIERDA: Canciones 1 y 2 -->
+        <div class="caja-historial">
+            <h4>Anteriores (1-2)</h4>
+            <div id="historial-izq">Esperando transmisión...</div>
         </div>
 
-        <button id="playBtn" class="play-btn">ESCUCHAR EN DIRECTO</button>
+        <!-- CONTENEDOR CENTRAL (Reproductor principal) -->
+        <div class="container">
+            <div id="artwork-container">
+                <img id="artwork" class="artwork" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Logo">
+            </div>
+            <h1>Radio Porcuna</h1>
+            <div id="subtitulo-rotativo" class="subtitle">La radio de nuestra tierra</div>
+            
+            <div class="now-playing-box">
+                <div class="now-playing-label">SONANDO AHORA:</div>
+                <div id="songTitle" class="now-playing-title">Radio Porcuna - En directo</div>
+                <div id="songArtist" class="now-playing-artist">106.9 FM</div>
+            </div>
+
+            <button id="playBtn" class="play-btn">ESCUCHAR EN DIRECTO</button>
+        </div>
+
+        <!-- COLUMNA DERECHA: Canciones 3 y 4 -->
+        <div class="caja-historial">
+            <h4>Anteriores (3-4)</h4>
+            <div id="historial-der">Esperando transmisión...</div>
+        </div>
+
     </div>
 
     <script>
@@ -150,7 +200,7 @@
         const STREAM_URL = "https://canalretrohits.online:8443/stream";
         const METADATA_URL = "https://canalretrohits.online:8443/status-json.xsl";
 
-        // Frases que irán rotando automáticamente
+        // Frases rotativas del subtítulo
         const listaFrases = [
             "La radio de nuestra tierra",
             "Online las 24 horas sin parar",
@@ -159,16 +209,14 @@
         ];
 
         let indiceActual = 0;
-        const elementoSubtitulo = document.getElementById("subtitulo-rotativo");
-
+        const elementosubtitulo = document.getElementById("subtitulo-rotativo");
+        
         function cambiarTextoRotativo() {
             indiceActual = (indiceActual + 1) % listaFrases.length;
-            if (elementoSubtitulo) {
-                elementoSubtitulo.textContent = listaFrases[indiceActual];
+            if (elementosubtitulo) {
+                elementosubtitulo.textContent = listaFrases[indiceActual];
             }
         }
-
-        // Rota la frase cada 5 segundos (5000 milisegundos)
         setInterval(cambiarTextoRotativo, 5000);
 
         const playBtn = document.getElementById('playBtn');
@@ -180,16 +228,13 @@
         let isPlaying = false;
         let lastRawTrack = "";
 
-        // --- BLOQUE PARA QUE NO SE APAGUE LA PANTALLA ---
+        // Bloqueo de pantalla para móvil
         let wakeLock = null;
-
         async function requestWakeLock() {
             try {
                 if ('wakeLock' in navigator) {
                     wakeLock = await navigator.wakeLock.request('screen');
-                    wakeLock.addEventListener('release', () => {
-                        wakeLock = null;
-                    });
+                    wakeLock.addEventListener('release', () => { wakeLock = null; });
                 }
             } catch (err) {}
         }
@@ -224,18 +269,16 @@
         });
 
         async function searchArtwork(artist, title) {
-            let cleanTitle = title.replace(/\([^)]*\)/g, '').trim(); 
+            let cleanTitle = title.replace(/\([^)]*\)/g, '').trim();
             let query = `${artist} ${cleanTitle}`.trim();
-            
             try {
                 let res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=1`);
                 let data = await res.json();
-                
                 if (data.results && data.results.length > 0) {
                     let track = data.results[0];
                     artwork.src = track.artworkUrl100.replace('100x100bb', '600x600bb');
                 } else {
-                    let resFallback = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(cleanTitle)}&media=music&limit=1`);
+                    let resFallback = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&media=music&limit=1`);
                     let dataFallback = await resFallback.json();
                     if (dataFallback.results && dataFallback.results.length > 0) {
                         let track = dataFallback.results[0];
@@ -271,34 +314,46 @@
 
             songTitle.innerText = title;
             songArtist.innerText = artist;
-
             searchArtwork(artist, title);
+
+            // --- GESTIÓN DE LAS 4 ÚLTIMAS CANCIONES ---
+            let historial = JSON.parse(localStorage.getItem("radio_historial_porcuna_4")) || [];
+            if (historial.length === 0 || historial[0] !== rawTrack) {
+                historial.unshift(rawTrack);
+                if (historial.length > 4) historial.pop();
+                localStorage.setItem("radio_historial_porcuna_4", JSON.stringify(historial));
+            }
+
+            // Pintar en columnas laterales
+            let izqHtml = "";
+            let derHtml = "";
+            historial.forEach((track, index) => {
+                let linea = `<div style="margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${track}">• ${track}</div>`;
+                if (index < 2) {
+                    izqHtml += linea; // 1 y 2 a la izquierda
+                } else {
+                    derHtml += linea; // 3 y 4 a la derecha
+                }
+            });
+
+            document.getElementById("historial-izq").innerHTML = izqHtml || "Sin datos";
+            document.getElementById("historial-der").innerHTML = derHtml || "Sin datos";
         }
 
         async function fetchMetadata() {
             let track = "";
-            
-            // Intento 1: Directo al Icecast
             try {
                 let response = await fetch(METADATA_URL, { cache: "no-store" });
                 let data = await response.json();
                 track = extractTrackFromJSON(data);
-            } catch (err) {
-                // Intento 2: Proxy AllOrigins para saltar bloqueo CORS
+            } catch (err1) {
                 try {
-                    let proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(METADATA_URL + "?ts=" + Date.now());
+                    let proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(METADATA_URL);
                     let response = await fetch(proxyUrl);
                     let data = await response.json();
-                    track = extractTrackFromJSON(data);
-                } catch (err2) {
-                    // Intento 3: Proxy Corsproxy
-                    try {
-                        let proxyUrl2 = "https://corsproxy.io/?" + encodeURIComponent(METADATA_URL);
-                        let response = await fetch(proxyUrl2);
-                        let data = await response.json();
-                        track = extractTrackFromJSON(data);
-                    } catch (err3) {}
-                }
+                    let parsedData = JSON.parse(data.contents);
+                    track = extractTrackFromJSON(parsedData);
+                } catch (err2) {}
             }
 
             if (track && track !== lastRawTrack) {
@@ -311,7 +366,7 @@
             if (!data || !data.icestats) return "";
             let source = data.icestats.source;
             if (Array.isArray(source)) {
-                source = source[0];
+                source = source.find(s => s.listenurl && s.listenurl.includes("/stream")) || source[0];
             }
             if (source) {
                 return source.title || source.song || source.yp_currently_playing || "";
@@ -319,7 +374,7 @@
             return "";
         }
 
-        setInterval(fetchMetadata, 1000);
+        setInterval(fetchMetadata, 10000);
         fetchMetadata();
     </script>
 </body>
