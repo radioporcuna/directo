@@ -147,7 +147,7 @@
         <button id="playBtn" class="play-btn">ESCUCHAR EN DIRECTO</button>
     </div>
 
-    <script>
+    
         const DEFAULT_LOGO = "https://cdn-profiles.tunein.com/s225357/images/logog.jpg"; 
         const STREAM_URL = "https://canalretrohits.online:8443/stream";
         const METADATA_URL = "https://canalretrohits.online:8443/status-json.xsl";
@@ -167,19 +167,24 @@
     if (elementoSubtitulo) {
       elementoSubtitulo.textContent = listaFrases[indiceActual];
     }
-  }
+   function cambiarTextoRotativo() {
+        indiceActual = (indiceActual + 1) % listaFrases.length;
+        if (elementoSubtitulo) {
+            elementoSubtitulo.textContent = listaFrases[indiceActual];
+        }
+    }
 
-  // Rota la frase cada 5 segundos (5000 milisegundos)
- setInterval(cambiarTextoRotativo, 5000);
+    // Rota la frase cada 5 segundos (5000 milisegundos)
+    setInterval(cambiarTextoRotativo, 5000);
 
-        const playBtn = document.getElementById('playBtn');
-        const artwork = document.getElementById('artwork');
-        const songTitle = document.getElementById('songTitle');
-        const songArtist = document.getElementById('songArtist');
+    const playBtn = document.getElementById('playBtn');
+    const artwork = document.getElementById('artwork');
+    const songTitle = document.getElementById('songTitle');
+    const songArtist = document.getElementById('songArtist');
 
-        const audio = new Audio();
-        let isPlaying = false;
-        let lastRawTrack = "";
+    const audio = new Audio();
+    let isPlaying = false;
+    let lastRawTrack = "";
 
     // --- BLOQUE PARA QUE NO SE APAGUE LA PANTALLA ---
     let wakeLock = null;
