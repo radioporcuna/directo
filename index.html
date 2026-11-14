@@ -136,7 +136,7 @@
         </div>
 
         <h1>Radio Porcuna</h1>
-        <div class="subtitle">La radio de nuestra tierra</div>
+        <div id="subtitulo-rotativo" class="subtitle">La radio de nuestra tierra</div>
 
         <div class="now-playing-box">
             <div class="now-playing-label">SONANDO AHORA:</div>
@@ -151,7 +151,27 @@
         const DEFAULT_LOGO = "https://cdn-profiles.tunein.com/s225357/images/logog.jpg"; 
         const STREAM_URL = "https://canalretrohits.online:8443/stream";
         const METADATA_URL = "https://canalretrohits.online:8443/status-json.xsl";
+        // Frases que irán rotando automáticamente
+  const listaFrases = [
+    "La radio de nuestra tierra",
+    "Sonando las 24 horas sin parar",
+    "El sonido de los 90s en directo",
+    "Conecta con los mejores recuerdos"
+  ];
 
+  let indiceActual = 0;
+  const elementoSubtitulo = document.getElementById("subtitulo-rotativo");
+
+  function cambiarTextoRotativo() {
+    indiceActual = (indiceActual + 1) % listaFrases.length;
+    if (elementoSubtitulo) {
+      elementoSubtitulo.textContent = listaFrases[indiceActual];
+    }
+  }
+
+  // Rota la frase cada 5 segundos (5000 milisegundos)
+ setInterval(cambiarTextoRotativo, 5000);
+}
         const playBtn = document.getElementById('playBtn');
         const artwork = document.getElementById('artwork');
         const songTitle = document.getElementById('songTitle');
