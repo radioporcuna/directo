@@ -34,13 +34,13 @@
             text-align: center;
         }
 
-        /* Carátula / Logo circular principal (TAMAÑO EQUILIBRADO ~120px) */
+        /* Carátula / Logo circular principal (SUBIDO A 145px) */
         .artwork-container {
-            width: 120px !important;
-            height: 120px !important;
+            width: 145px !important;
+            height: 145px !important;
             border-radius: 50% !important;
             margin-bottom: 12px;
-            box-shadow: 0 0 15px rgba(255, 30, 60, 0.5);
+            box-shadow: 0 0 16px rgba(255, 30, 60, 0.5);
             overflow: hidden;
             border: 2px solid #ff2e4d;
             background-color: #000000;
@@ -210,7 +210,7 @@
 
     <!-- REPRODUCTOR CENTRAL COMPACTO -->
     <div class="container">
-        <div id="artwork-container" style="width: 120px; height: 120px;">
+        <div id="artwork-container" style="width: 145px; height: 145px;">
             <img id="artwork" class="artwork" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Logo">
         </div>
         <h1>Radio Porcuna</h1>
@@ -380,26 +380,38 @@
                 title = rawTrack.trim();
             }
 
-            songTitle.innerText = title;
-            songArtist.innerText = artist;
+            // Canción actual que suena en directo
+            let currentTitle = title;
+            let currentArtist = artist;
 
-            searchArtwork(artist, title, function(coverUrl) {
+            songTitle.innerText = currentTitle;
+            songArtist.innerText = currentArtist;
+
+            searchArtwork(currentArtist, currentTitle, function(coverUrl) {
                 artwork.src = coverUrl;
 
-                let historial = JSON.parse(localStorage.getItem("radio_historial_porcuna_v9")) || [];
+                let historial = JSON.parse(localStorage.getItem("radio_historial_porcuna_v10")) || [];
                 
+                // Solo si la canción actual es distinta a la última guardada en el histórico, la desplazamos
                 if (historial.length === 0 || historial[0].raw !== rawTrack) {
-                    historial.unshift({
-                        raw: rawTrack,
-                        title: title,
-                        artist: artist,
-                        cover: coverUrl
-                    });
-                    if (historial.length > 4) historial.pop();
-                    localStorage.setItem("radio_historial_porcuna_v9", JSON.stringify(historial));
-                } else {
-                    historial[0].cover = coverUrl;
-                    localStorage.setItem("radio_historial_porcuna_v9", JSON.stringify(historial));
+                    // Si ya había una sonando antes, pasa a ser el primer elemento del historial anterior
+                    if (lastRawTrack && lastRawTrack !== rawTrack && !lastRawTrack.includes("Radio Porcuna")) {
+                        let oldParts = lastRawTrack.split('-');
+                        let oldArtist = oldParts[0] ? oldParts[0].trim() : "Radio Porcuna";
+                        let oldTitle = oldParts.slice(1).join(' - ').trim() || lastRawTrack.trim();
+                        
+                        searchArtwork(oldArtist, oldTitle, function(oldCover) {
+                            historial.unshift({
+                                raw: lastRawTrack,
+                                title: oldTitle,
+                                artist: oldArtist,
+                                cover: oldCover
+                            });
+                            if (historial.length > 4) historial.pop();
+                            localStorage.setItem("radio_historial_porcuna_v10", JSON.stringify(historial));
+                            actualizarPantallaHistorial(historial);
+                        });
+                    }
                 }
 
                 actualizarPantallaHistorial(historial);
@@ -418,7 +430,7 @@
                     if(thumbEl) { thumbEl.src = historial[i].cover; }
                 } else {
                     if(titleEl) titleEl.textContent = "Radio Porcuna";
-                    if(artistEl) artistEl.textContent = "En directo";
+                    if(artistEl) titleEl.textContent = "En directo";
                     if(thumbEl) thumbEl.src = DEFAULT_LOGO;
                 }
             }
@@ -440,12 +452,13 @@
                 } catch (err2) {}
             }
 
-            let historialGuardado = JSON.parse(localStorage.getItem("radio_historial_porcuna_v9")) || [];
+            let historialGuardado = JSON.parse(localStorage.getItem("radio_historial_porcuna_v10")) || [];
             if (historialGuardado.length > 0) {
                 actualizarPantallaHistorial(historialGuardado);
             }
 
             if (track && track !== lastRawTrack) {
+                let previousTrack = lastRawTrack;
                 lastRawTrack = track;
                 processTrackInfo(track);
             }
