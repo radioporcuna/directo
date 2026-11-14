@@ -34,13 +34,13 @@
             text-align: center;
         }
 
-        /* Carátula / Logo circular principal FORZADO A SER PEQUEÑO */
+        /* Carátula / Logo circular principal (TAMAÑO EQUILIBRADO ~120px) */
         .artwork-container {
-            width: 70px !important;
-            height: 70px !important;
+            width: 120px !important;
+            height: 120px !important;
             border-radius: 50% !important;
-            margin-bottom: 8px;
-            box-shadow: 0 0 10px rgba(255, 30, 60, 0.4);
+            margin-bottom: 12px;
+            box-shadow: 0 0 15px rgba(255, 30, 60, 0.5);
             overflow: hidden;
             border: 2px solid #ff2e4d;
             background-color: #000000;
@@ -59,16 +59,16 @@
         }
 
         h1 {
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 2px;
             letter-spacing: -0.5px;
         }
 
         .subtitle {
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             color: #ff7b89;
-            margin-bottom: 10px;
+            margin-bottom: 14px;
             font-weight: 400;
         }
 
@@ -79,13 +79,13 @@
             border-radius: 10px;
             padding: 10px 14px;
             text-align: left;
-            margin-bottom: 10px;
+            margin-bottom: 14px;
             border-left: 3px solid #ff2e4d;
             box-shadow: 0 3px 12px rgba(0,0,0,0.3);
         }
 
         .now-playing-label {
-            font-size: 0.6rem;
+            font-size: 0.65rem;
             font-weight: 700;
             color: #ff2e4d;
             letter-spacing: 0.5px;
@@ -94,7 +94,7 @@
         }
 
         .now-playing-title {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             font-weight: 600;
             color: #ffffff;
             white-space: nowrap;
@@ -103,7 +103,7 @@
         }
 
         .now-playing-artist {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             color: #a8a8a8;
             margin-top: 1px;
             white-space: nowrap;
@@ -118,13 +118,13 @@
             color: #ffffff;
             border: none;
             border-radius: 25px;
-            padding: 10px 16px;
-            font-size: 0.85rem;
+            padding: 12px 18px;
+            font-size: 0.9rem;
             font-weight: 800;
             letter-spacing: 0.5px;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(255, 30, 60, 0.4);
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
 
         .play-btn:active {
@@ -136,11 +136,11 @@
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
         }
 
         .historial-titulo-seccion {
-            font-size: 0.6rem;
+            font-size: 0.65rem;
             font-weight: 700;
             color: #aaa;
             text-transform: uppercase;
@@ -152,21 +152,21 @@
         .track-box-historial {
             width: 100%;
             background-color: #1a1a1a;
-            border-radius: 8px;
-            padding: 5px 8px;
+            border-radius: 10px;
+            padding: 6px 10px;
             display: flex;
             align-items: center;
             gap: 8px;
             border-left: 3px solid #ff2e4d;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-left-width: 3px;
         }
 
         .historial-thumb {
-            width: 28px;
-            height: 28px;
-            border-radius: 4px;
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
             object-fit: cover;
             background-color: #000;
             flex-shrink: 0;
@@ -181,7 +181,7 @@
         }
 
         .track-label-historial {
-            font-size: 0.45rem;
+            font-size: 0.5rem;
             font-weight: 700;
             color: #ff2e4d;
             letter-spacing: 0.5px;
@@ -189,7 +189,7 @@
         }
 
         .track-title-historial {
-            font-size: 0.65rem;
+            font-size: 0.7rem;
             font-weight: 600;
             color: #ffffff;
             white-space: nowrap;
@@ -198,7 +198,7 @@
         }
 
         .track-artist-historial {
-            font-size: 0.55rem;
+            font-size: 0.6rem;
             color: #a8a8a8;
             white-space: nowrap;
             overflow: hidden;
@@ -210,7 +210,7 @@
 
     <!-- REPRODUCTOR CENTRAL COMPACTO -->
     <div class="container">
-        <div id="artwork-container" style="width: 70px; height: 70px;">
+        <div id="artwork-container" style="width: 120px; height: 120px;">
             <img id="artwork" class="artwork" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Logo">
         </div>
         <h1>Radio Porcuna</h1>
@@ -232,8 +232,8 @@
                 <img id="thumb-1" class="historial-thumb" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Portada">
                 <div class="historial-info">
                     <div class="track-label-historial">Anterior 1</div>
-                    <div id="hist-title-1" class="track-title-historial">Cargando...</div>
-                    <div id="hist-artist-1" class="track-artist-historial">-</div>
+                    <div id="hist-title-1" class="track-title-historial">Radio Porcuna</div>
+                    <div id="hist-artist-1" class="track-artist-historial">En directo</div>
                 </div>
             </div>
 
@@ -241,8 +241,8 @@
                 <img id="thumb-2" class="historial-thumb" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Portada">
                 <div class="historial-info">
                     <div class="track-label-historial">Anterior 2</div>
-                    <div id="hist-title-2" class="track-title-historial">Cargando...</div>
-                    <div id="hist-artist-2" class="track-artist-historial">-</div>
+                    <div id="hist-title-2" class="track-title-historial">Radio Porcuna</div>
+                    <div id="hist-artist-2" class="track-artist-historial">En directo</div>
                 </div>
             </div>
 
@@ -250,8 +250,8 @@
                 <img id="thumb-3" class="historial-thumb" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Portada">
                 <div class="historial-info">
                     <div class="track-label-historial">Anterior 3</div>
-                    <div id="hist-title-3" class="track-title-historial">Cargando...</div>
-                    <div id="hist-artist-3" class="track-artist-historial">-</div>
+                    <div id="hist-title-3" class="track-title-historial">Radio Porcuna</div>
+                    <div id="hist-artist-3" class="track-artist-historial">En directo</div>
                 </div>
             </div>
 
@@ -259,8 +259,8 @@
                 <img id="thumb-4" class="historial-thumb" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Portada">
                 <div class="historial-info">
                     <div class="track-label-historial">Anterior 4</div>
-                    <div id="hist-title-4" class="track-title-historial">Cargando...</div>
-                    <div id="hist-artist-4" class="track-artist-historial">-</div>
+                    <div id="hist-title-4" class="track-title-historial">Radio Porcuna</div>
+                    <div id="hist-artist-4" class="track-artist-historial">En directo</div>
                 </div>
             </div>
         </div>
@@ -383,11 +383,10 @@
             songTitle.innerText = title;
             songArtist.innerText = artist;
 
-            // Búsqueda rápida e instantánea de la carátula
             searchArtwork(artist, title, function(coverUrl) {
                 artwork.src = coverUrl;
 
-                let historial = JSON.parse(localStorage.getItem("radio_historial_porcuna_v8")) || [];
+                let historial = JSON.parse(localStorage.getItem("radio_historial_porcuna_v9")) || [];
                 
                 if (historial.length === 0 || historial[0].raw !== rawTrack) {
                     historial.unshift({
@@ -397,10 +396,10 @@
                         cover: coverUrl
                     });
                     if (historial.length > 4) historial.pop();
-                    localStorage.setItem("radio_historial_porcuna_v8", JSON.stringify(historial));
+                    localStorage.setItem("radio_historial_porcuna_v9", JSON.stringify(historial));
                 } else {
                     historial[0].cover = coverUrl;
-                    localStorage.setItem("radio_historial_porcuna_v8", JSON.stringify(historial));
+                    localStorage.setItem("radio_historial_porcuna_v9", JSON.stringify(historial));
                 }
 
                 actualizarPantallaHistorial(historial);
@@ -418,8 +417,8 @@
                     if(artistEl) { artistEl.textContent = historial[i].artist; artistEl.title = historial[i].artist; }
                     if(thumbEl) { thumbEl.src = historial[i].cover; }
                 } else {
-                    if(titleEl) titleEl.textContent = "En emisión...";
-                    if(artistEl) titleEl.textContent = "Radio Porcuna";
+                    if(titleEl) titleEl.textContent = "Radio Porcuna";
+                    if(artistEl) artistEl.textContent = "En directo";
                     if(thumbEl) thumbEl.src = DEFAULT_LOGO;
                 }
             }
@@ -441,7 +440,7 @@
                 } catch (err2) {}
             }
 
-            let historialGuardado = JSON.parse(localStorage.getItem("radio_historial_porcuna_v8")) || [];
+            let historialGuardado = JSON.parse(localStorage.getItem("radio_historial_porcuna_v9")) || [];
             if (historialGuardado.length > 0) {
                 actualizarPantallaHistorial(historialGuardado);
             }
