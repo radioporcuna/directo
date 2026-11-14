@@ -34,15 +34,15 @@
             text-align: center;
         }
 
-        /* Carátula / Logo circular principal (SUBIDO A 145px) */
+        /* Círculo perfecto con su borde rojo brillante (Ampliado a 170px) */
         .artwork-container {
-            width: 145px !important;
-            height: 145px !important;
-            border-radius: 50% !important;
+            width: 170px;
+            height: 170px;
+            border-radius: 50%;
             margin-bottom: 12px;
-            box-shadow: 0 0 16px rgba(255, 30, 60, 0.5);
+            box-shadow: 0 0 22px rgba(255, 30, 60, 0.6);
             overflow: hidden;
-            border: 2px solid #ff2e4d;
+            border: 3px solid #ff2e4d;
             background-color: #000000;
             display: flex;
             align-items: center;
@@ -131,7 +131,7 @@
             transform: scale(0.98);
         }
 
-        /* SECCIÓN INFERIOR: Las 4 cajitas debajo del botón */
+        /* SECCIÓN INFERIOR: Las 4 cajitas del historial */
         .historial-seccion {
             width: 100%;
             display: flex;
@@ -208,9 +208,9 @@
 </head>
 <body>
 
-    <!-- REPRODUCTOR CENTRAL COMPACTO -->
     <div class="container">
-        <div id="artwork-container" style="width: 145px; height: 145px;">
+        <!-- Círculo central ampliado a 170px -->
+        <div class="artwork-container">
             <img id="artwork" class="artwork" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Logo">
         </div>
         <h1>Radio Porcuna</h1>
@@ -224,7 +224,7 @@
 
         <button id="playBtn" class="play-btn">ESCUCHAR EN DIRECTO</button>
 
-        <!-- CAJITAS ANTERIORES DEBAJO DEL BOTÓN -->
+        <!-- CAJITAS DE ANTERIORES -->
         <div class="historial-seccion">
             <div class="historial-titulo-seccion">Anteriores</div>
             
@@ -232,8 +232,8 @@
                 <img id="thumb-1" class="historial-thumb" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Portada">
                 <div class="historial-info">
                     <div class="track-label-historial">Anterior 1</div>
-                    <div id="hist-title-1" class="track-title-historial">Radio Porcuna</div>
-                    <div id="hist-artist-1" class="track-artist-historial">En directo</div>
+                    <div id="hist-title-1" class="track-title-historial">Esperando...</div>
+                    <div id="hist-artist-1" class="track-artist-historial">-</div>
                 </div>
             </div>
 
@@ -241,8 +241,8 @@
                 <img id="thumb-2" class="historial-thumb" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Portada">
                 <div class="historial-info">
                     <div class="track-label-historial">Anterior 2</div>
-                    <div id="hist-title-2" class="track-title-historial">Radio Porcuna</div>
-                    <div id="hist-artist-2" class="track-artist-historial">En directo</div>
+                    <div id="hist-title-2" class="track-title-historial">Esperando...</div>
+                    <div id="hist-artist-2" class="track-artist-historial">-</div>
                 </div>
             </div>
 
@@ -250,8 +250,8 @@
                 <img id="thumb-3" class="historial-thumb" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Portada">
                 <div class="historial-info">
                     <div class="track-label-historial">Anterior 3</div>
-                    <div id="hist-title-3" class="track-title-historial">Radio Porcuna</div>
-                    <div id="hist-artist-3" class="track-artist-historial">En directo</div>
+                    <div id="hist-title-3" class="track-title-historial">Esperando...</div>
+                    <div id="hist-artist-3" class="track-artist-historial">-</div>
                 </div>
             </div>
 
@@ -259,12 +259,11 @@
                 <img id="thumb-4" class="historial-thumb" src="https://cdn-profiles.tunein.com/s225357/images/logog.jpg" alt="Portada">
                 <div class="historial-info">
                     <div class="track-label-historial">Anterior 4</div>
-                    <div id="hist-title-4" class="track-title-historial">Radio Porcuna</div>
-                    <div id="hist-artist-4" class="track-artist-historial">En directo</div>
+                    <div id="hist-title-4" class="track-title-historial">Esperando...</div>
+                    <div id="hist-artist-4" class="track-artist-historial">-</div>
                 </div>
             </div>
         </div>
-
     </div>
 
     <script>
@@ -338,7 +337,7 @@
             }
         });
 
-        function searchArtwork(artist, title, callback) {
+        function fetchArtworkUrl(artist, title, callback) {
             let cleanTitle = title.replace(/\([^)]*\)/g, '').trim();
             let query = `${artist} ${cleanTitle}`.trim();
             fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=1`)
@@ -380,41 +379,33 @@
                 title = rawTrack.trim();
             }
 
-            // Canción actual que suena en directo
-            let currentTitle = title;
-            let currentArtist = artist;
+            if (lastRawTrack && lastRawTrack !== rawTrack && !lastRawTrack.includes("Radio Porcuna")) {
+                let oldParts = lastRawTrack.split('-');
+                let oldArtist = oldParts[0] ? oldParts[0].trim() : "Radio Porcuna";
+                let oldTitle = oldParts.slice(1).join(' - ').trim() || lastRawTrack.trim();
 
-            songTitle.innerText = currentTitle;
-            songArtist.innerText = currentArtist;
-
-            searchArtwork(currentArtist, currentTitle, function(coverUrl) {
-                artwork.src = coverUrl;
-
-                let historial = JSON.parse(localStorage.getItem("radio_historial_porcuna_v10")) || [];
-                
-                // Solo si la canción actual es distinta a la última guardada en el histórico, la desplazamos
-                if (historial.length === 0 || historial[0].raw !== rawTrack) {
-                    // Si ya había una sonando antes, pasa a ser el primer elemento del historial anterior
-                    if (lastRawTrack && lastRawTrack !== rawTrack && !lastRawTrack.includes("Radio Porcuna")) {
-                        let oldParts = lastRawTrack.split('-');
-                        let oldArtist = oldParts[0] ? oldParts[0].trim() : "Radio Porcuna";
-                        let oldTitle = oldParts.slice(1).join(' - ').trim() || lastRawTrack.trim();
-                        
-                        searchArtwork(oldArtist, oldTitle, function(oldCover) {
-                            historial.unshift({
-                                raw: lastRawTrack,
-                                title: oldTitle,
-                                artist: oldArtist,
-                                cover: oldCover
-                            });
-                            if (historial.length > 4) historial.pop();
-                            localStorage.setItem("radio_historial_porcuna_v10", JSON.stringify(historial));
-                            actualizarPantallaHistorial(historial);
+                fetchArtworkUrl(oldArtist, oldTitle, function(oldCover) {
+                    let historial = JSON.parse(localStorage.getItem("radio_historial_porcuna_v15")) || [];
+                    
+                    if (historial.length === 0 || historial[0].raw !== lastRawTrack) {
+                        historial.unshift({
+                            raw: lastRawTrack,
+                            title: oldTitle,
+                            artist: oldArtist,
+                            cover: oldCover
                         });
+                        if (historial.length > 4) historial.pop();
+                        localStorage.setItem("radio_historial_porcuna_v15", JSON.stringify(historial));
+                        actualizarPantallaHistorial(historial);
                     }
-                }
+                });
+            }
 
-                actualizarPantallaHistorial(historial);
+            songTitle.innerText = title;
+            songArtist.innerText = artist;
+
+            fetchArtworkUrl(artist, title, function(currentCover) {
+                artwork.src = currentCover;
             });
         }
 
@@ -429,8 +420,8 @@
                     if(artistEl) { artistEl.textContent = historial[i].artist; artistEl.title = historial[i].artist; }
                     if(thumbEl) { thumbEl.src = historial[i].cover; }
                 } else {
-                    if(titleEl) titleEl.textContent = "Radio Porcuna";
-                    if(artistEl) titleEl.textContent = "En directo";
+                    if(titleEl) titleEl.textContent = "Esperando...";
+                    if(artistEl) titleEl.textContent = "-";
                     if(thumbEl) thumbEl.src = DEFAULT_LOGO;
                 }
             }
@@ -439,28 +430,37 @@
         async function fetchMetadata() {
             let track = "";
             try {
-                let response = await fetch(METADATA_URL, { cache: "no-store" });
+                let proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(METADATA_URL);
+                let response = await fetch(proxyUrl, { cache: "no-store" });
                 let data = await response.json();
-                track = extractTrackFromJSON(data);
-            } catch (err1) {
+                let parsedData = JSON.parse(data.contents);
+                track = extractTrackFromJSON(parsedData);
+            } catch (err) {
                 try {
-                    let proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(METADATA_URL);
-                    let response = await fetch(proxyUrl);
-                    let data = await response.json();
-                    let parsedData = JSON.parse(data.contents);
-                    track = extractTrackFromJSON(parsedData);
+                    let responseDirect = await fetch(METADATA_URL, { cache: "no-store" });
+                    let dataDirect = await responseDirect.json();
+                    track = extractTrackFromJSON(dataDirect);
                 } catch (err2) {}
             }
 
-            let historialGuardado = JSON.parse(localStorage.getItem("radio_historial_porcuna_v10")) || [];
+            let historialGuardado = JSON.parse(localStorage.getItem("radio_historial_porcuna_v15")) || [];
             if (historialGuardado.length > 0) {
                 actualizarPantallaHistorial(historialGuardado);
             }
 
             if (track && track !== lastRawTrack) {
-                let previousTrack = lastRawTrack;
-                lastRawTrack = track;
-                processTrackInfo(track);
+                if (!lastRawTrack) {
+                    lastRawTrack = track;
+                    let parts = track.split('-');
+                    let artist = parts[0] ? parts[0].trim() : "Radio Porcuna 106.9 FM";
+                    let title = parts.slice(1).join(' - ').trim() || track.trim();
+                    songTitle.innerText = title;
+                    songArtist.innerText = artist;
+                    fetchArtworkUrl(artist, title, function(cover) { artwork.src = cover; });
+                } else {
+                    processTrackInfo(track);
+                    lastRawTrack = track;
+                }
             }
         }
 
