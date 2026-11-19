@@ -294,9 +294,9 @@
         const songTitle = document.getElementById('songTitle');
         const songArtist = document.getElementById('songArtist');
 
-        audio.preload = "auto";
-        audio.src = STREAM_URL;
-        audio.load();
+        const audio = new Audio();
+        let isPlaying = false;
+        let lastRawTrack = "";
 
         let wakeLock = null;
         async function requestWakeLock() {
