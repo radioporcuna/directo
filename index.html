@@ -406,36 +406,43 @@
 
             fetchArtworkUrl(artist, title, function(currentCover) {
                 artwork.src = currentCover;
-                
             });
-        function actualizarPantallaHistorial(historial) {
-    for (let i = 0; i < 4; i++) {
-        let titleEl = document.getElementById(`hist-title-${i+1}`);
-        let artistEl = document.getElementById(`hist-artist-${i+1}`);
-        let thumbEl = document.getElementById(`thumb-${i+1}`);
-
-        if (historial[i]) {
-            if(titleEl) { titleEl.textContent = historial[i].title; titleEl.title = historial[i].title; }
-            if(artistEl) { artistEl.textContent = historial[i].artist; artistEl.title = historial[i].artist; }
-            if(thumbEl) { thumbEl.src = historial[i].cover; }
-        } else {
-            if(titleEl) titleEl.textContent = "Esperando...";
-            if(artistEl) artistEl.textContent = "-";
-            if(thumbEl) thumbEl.src = DEFAULT_LOGO;
         }
-    }        
-}         
-     
+
+        function actualizarPantallaHistorial(historial) {
+            for (let i = 0; i < 4; i++) {
+                let titleEl = document.getElementById(`hist-title-${i+1}`);
+                let artistEl = document.getElementById(`hist-artist-${i+1}`);
+                let thumbEl = document.getElementById(`thumb-${i+1}`);
+                
+                if (historial[i]) {
+                    if(titleEl) { titleEl.textContent = historial[i].title; titleEl.title = historial[i].title; }
+                    if(artistEl) { artistEl.textContent = historial[i].artist; artistEl.title = historial[i].artist; }
+                    if(thumbEl) { thumbEl.src = historial[i].cover; }
+                } else {
+                    if(titleEl) titleEl.textContent = "Esperando...";
+                    if(artistEl) titleEl.textContent = "-";
+                    if(thumbEl) thumbEl.src = DEFAULT_LOGO;
+                }
+            }
+        }
 
         async function fetchMetadata() {
             let track = "";
-              
-    try {
-        let response = await fetch(METADATA_URL, { cache: "no-store" });
-        let data = await response.json();
-        track = extractTrackFromJSON(data);
-    } catch (err) {}
-}
+            try {
+                let proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(METADATA_URL);
+                let response = await fetch(proxyUrl, { cache: "no-store" });
+                let data = await response.json();
+                let parsedData = JSON.parse(data.contents);
+                track = extractTrackFromJSON(parsedData);
+            } catch (err) {
+                try {
+                    let responseDirect = await fetch(METADATA_URL, { cache: "no-store" });
+                    let dataDirect = await responseDirect.json();
+                    track = extractTrackFromJSON(dataDirect);
+                } catch (err2) {}
+            }
+
             let historialGuardado = JSON.parse(localStorage.getItem("radio_historial_porcuna_v15")) || [];
             if (historialGuardado.length > 0) {
                 actualizarPantallaHistorial(historialGuardado);
@@ -455,7 +462,7 @@
                     lastRawTrack = track;
                 }
             }
-       }  
+        }
 
         function extractTrackFromJSON(data) {
             if (!data || !data.icestats) return "";
